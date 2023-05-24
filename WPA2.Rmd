@@ -2104,10 +2104,26 @@ player = c("T Banton", "WCF Smeed", "T Kohler-Cadmore", "TB Abell", "TA Lammonby
 match4_sum = match4_bat3 %>% 
                             left_join(match4_bowl3, by = "team") %>%
                                 select(team, batdelt, bowldelt)
-   
+
+
+
+pred1 <- predict(fin_rf2, new_data = match4_sum)
+
+match4_sum_rat = match4_sum %>%bind_cols(pred1)
+
+
 ```
 
 
+```{r}
+
+som = rnorm(1000,10.0228,10)
+
+som_tib = tibble(som)
+
+ggplot(som_tib, aes(x = som)) + geom_histogram(binwidth = 1)
+
+````
 
 
 ```{r}
