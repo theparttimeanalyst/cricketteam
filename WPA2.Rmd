@@ -1,0 +1,3137 @@
+---
+title: "jsontest"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(jsonlite)
+
+library(tidyverse)
+
+library(tidymodels)
+
+
+library(rjson)
+```
+
+
+```{r}
+
+setwd("~/Projects/cricket/WPA/jsondat")
+
+library(rjson)
+
+data <- fromJSON(file = "C:/Users/aLex/Documents/Projects/cricket/WPA/jsondat/251487.json")
+
+
+df <- enframe(unlist(data))
+```
+
+```{r}
+
+d_test <- df %>%
+  separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8"), fill = "right") %>%
+  filter(n1 == "innings") %>%
+  mutate(team = if_else(n2 == "team", value, "")) %>%
+  fill(team) %>%
+  mutate(overno = if_else(n3 == "over", value, "")) %>%
+  fill(overno)
+
+
+
+
+
+colnames(d_test)[1] <- "batter"
+
+
+d_test2 <- df %>%
+  separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6")) %>%
+  filter(n1 == "innings") %>%
+  select(n4, n5, value) %>%
+  filter(!is.na(n4)) %>%
+  filter(n4 == "bowler") %>%
+  select(value)
+
+colnames(d_test2)[1] <- "bowler"
+
+
+
+
+d_test3 <- df %>%
+  separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6")) %>%
+  filter(n1 == "innings") %>%
+  select(n4, n5, value) %>%
+  filter(!is.na(n4)) %>%
+  filter(n4 == "non") %>%
+  select(value)
+
+colnames(d_test3)[1] <- "non_strike"
+
+
+
+
+d_test4 <- df %>%
+  separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6")) %>%
+  filter(n1 == "innings") %>%
+  select(n4, n5, value) %>%
+  filter(!is.na(n4)) %>%
+  filter(n5 == "player") %>%
+  select(value)
+
+colnames(d_test4)[1] <- "non_strike"
+```
+
+```{r}
+
+
+d_test <- df %>%
+  separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8")) %>%
+  filter(n1 == "innings") %>%
+  mutate(team = if_else(n2 == "team", value, "r")) %>%
+  fill(team, .direction = "down") %>%
+  select(n4, n5, value) %>%
+  filter(!is.na(n4)) %>%
+  unite("tt", n4:n5, sep = "_") %>%
+  #  filter(tt  != c("extras_wides", "extras_noballs", "extras_legbyes", "extras_byes")) %>%
+  mutate(n = 1:n()) %>%
+  pivot_wider(names_from = tt, values_from = value) %>%
+  select(1:7) %>%
+  fill(batter_NA, .direction = "up") %>%
+  fill(bowler_NA, .direction = "up") %>%
+  fill(non_striker, .direction = "up") %>%
+  fill(runs_batter, .direction = "up") %>%
+  fill(runs_extras, .direction = "up") %>%
+  fill(runs_total, .direction = "up") %>%
+  mutate(ball = if_else(n == 1, 1, ((n - 1) / 6) + 1)) %>%
+  mutate(ball2 = if_else(n == 1, 1, floor(((n - 1) / 6) + 1))) %>%
+  mutate(ball3 = ball - ball2) %>%
+  filter(ball3 < 0.000001)
+```
+
+
+```{r}
+
+
+
+
+extra_test <- df %>%
+  separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8")) %>%
+  filter(n1 == "innings") %>%
+  mutate(team = if_else(n2 == "team", value, "r")) %>%
+  fill(team, .direction = "down") %>%
+  select(n4, n5, value) %>%
+  filter(!is.na(n4)) %>%
+  unite("tt", n4:n5, sep = "_") %>%
+  mutate(n = 1:n()) %>%
+  pivot_wider(names_from = tt, values_from = value)
+```
+
+
+```{r}
+
+rgx_split <- "\\."
+n_cols_max <-
+  df %>%
+  pull(name) %>%
+  str_split(rgx_split) %>%
+  map_dbl(~ length(.)) %>%
+  max()
+n_cols_max
+
+
+nms_sep <- paste0("name", 1:n_cols_max)
+df_sep <-
+  df %>%
+  separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+df_sep
+```
+
+
+
+```{r}
+
+
+
+innr <- df_sep %>%
+  filter(name1 == "innings") %>%
+  mutate(team = if_else(name2 == "team", value, NA_character_)) %>%
+  fill(team, .direction = "down") %>%
+  mutate(over = if_else(name3 == "over", value, NA_character_)) %>%
+  fill(over, .direction = "down") %>%
+  mutate(bat = if_else(name4 == "batter", value, NA_character_)) %>%
+  fill(bat, .direction = "down") %>%
+  mutate(bowl = if_else(name4 == "bowler", value, NA_character_)) %>%
+  fill(bowl, .direction = "down") %>%
+  mutate(ns = if_else(name4 == "non_striker", value, NA_character_)) %>%
+  fill(ns, .direction = "down") %>%
+  mutate(bat_run = if_else(name5 == "batter", value, NA_character_)) %>%
+  fill(bat_run, .direction = "down") %>%
+  mutate(extras = if_else(name5 == "extras", value, NA_character_)) %>%
+  mutate(wick = if_else(name5 == "kind", value, NA_character_)) %>%
+  mutate(filt = if_else(!is.na(extras), extras,
+    if_else(!is.na(wick), wick, NA_character_)
+  )) %>%
+  fill(filt, .direction = "up") %>%
+  fill(extras, .direction = "down") %>%
+  mutate(totrun = if_else(name5 == "total", value, NA_character_)) %>%
+  filter(!is.na(totrun)) %>%
+  select(team, over, bat, bowl, ns, bat_run, extras, totrun, filt) %>%
+  group_by(team, over) %>%
+  mutate(over2 = as.numeric(as.character(over))) %>%
+  mutate(ovball = 1:n()) %>%
+  mutate(innball = over2 * 6 + ovball) %>%
+  ungroup() %>%
+  mutate(lagte = lag(team)) %>%
+  mutate(inn = if_else(is.na(lagte), "1",
+    if_else(lagte != team, "2", NA_character_)
+  )) %>%
+  fill(inn, .direction = "down")
+
+
+
+innr2 <- innr %>% bind_cols(d_test)
+```
+
+
+```{r}
+
+
+
+innr_extra <- df_sep %>%
+  filter(name1 == "innings") %>%
+  mutate(team = if_else(name2 == "team", value, NA_character_)) %>%
+  fill(team, .direction = "down") %>%
+  filter(name4 == "extras") %>%
+  filter(name5 %in% c("noballs", "wides")) %>%
+  ungroup() %>%
+  group_by(team) %>%
+  summarise(n = n())
+```
+
+
+```{r}
+
+d_test2 <- df %>%
+  separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8"), fill = "right") %>%
+  filter(n1 == "info") %>%
+  filter(n2 == "players") %>%
+  select(n3, value) %>%
+  mutate(team)
+````
+
+
+
+```{r}
+
+
+df_info <- df_sep %>%
+  filter(name1 == "info") %>%
+  mutate(date = if_else(name2 == "dates", value, NA_character_)) %>%
+  fill(date, .direction = "down") %>%
+  mutate(comp = if_else(name3 == "name", value, NA_character_)) %>%
+  fill(comp, .direction = "down") %>%
+  mutate(venue = if_else(name2 == "venue", value, NA_character_)) %>%
+  fill(venue, .direction = "down") %>%
+  mutate(gender = if_else(name2 == "gender", value, NA_character_)) %>%
+  fill(gender, .direction = "down") %>%
+  mutate(winner = if_else(name2 == "outcome",
+    if_else(name3 == "winner", value, NA_character_), NA_character_
+  )) %>%
+  fill(winner, .direction = "down") %>%
+  mutate(tw = if_else(name2 == "toss",
+    if_else(name3 == "winner", value, NA_character_), NA_character_
+  )) %>%
+  fill(tw, .direction = "down") %>%
+  filter(!is.na(venue)) %>%
+  select(date, comp, venue, gender, winner, tw)
+````
+
+
+
+```{r}
+
+
+df_info2 <- df_sep %>%
+  filter(name1 == "info") %>%
+  filter(name2 != "players") %>%
+  filter(name2 != "registry") %>%
+  filter(name2 != "officials") %>%
+  filter(value != "D/L") %>%
+  mutate(col2 = if_else(name2 == "event", name3, name2)) %>%
+  filter(col2 != "group") %>%
+  mutate(col4 = if_else(col2 == "outcome", if_else(name3 == "winner", "outcome_t", "outcome_m"), col2)) %>%
+  mutate(col5 = if_else(col4 == "name", "comp", col4)) %>%
+  mutate(col6 = if_else(col5 == "toss", if_else(name3 == "decision", "toss_d", "toss_w"), col5)) %>%
+  mutate(col7 = if_else(col6 == "outcome_m", paste(name4, value, sep = "-"), value)) %>%
+  filter(col6 != "balls_per_over") %>%
+  select(col6, col7) %>%
+  pivot_wider(names_from = col6, values_from = col7)
+```
+
+
+```{r}
+
+
+
+
+
+df_play <- df_sep %>%
+  filter(name2 == "players") %>%
+  mutate(no = parse_number(name3)) %>%
+  mutate(team = if_else(no < 10, str_sub(name3, 1, nchar(name3) - 1), str_sub(name3, 1, nchar(name3) - 2))) %>%
+  select(team, no, value)
+
+
+colnames(df_play)[3] <- "player"
+```
+
+
+
+
+```{r}
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+
+fileread <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+
+
+
+  innr <- df_sep %>%
+    filter(name1 == "innings") %>%
+    mutate(team = if_else(name2 == "team", value, NA_character_)) %>%
+    fill(team, .direction = "down") %>%
+    mutate(over = if_else(name3 == "over", value, NA_character_)) %>%
+    fill(over, .direction = "down") %>%
+    mutate(bat = if_else(name4 == "batter", value, NA_character_)) %>%
+    fill(bat, .direction = "down") %>%
+    mutate(bowl = if_else(name4 == "bowler", value, NA_character_)) %>%
+    fill(bowl, .direction = "down") %>%
+    mutate(ns = if_else(name4 == "non_striker", value, NA_character_)) %>%
+    fill(ns, .direction = "down") %>%
+    mutate(bat_run = if_else(name5 == "batter", value, NA_character_)) %>%
+    fill(bat_run, .direction = "down") %>%
+    mutate(extras = if_else(name5 == "extras", value, NA_character_)) %>%
+    mutate(wick = if_else(name5 == "kind", value, NA_character_)) %>%
+    mutate(filt = if_else(!is.na(extras), extras,
+      if_else(!is.na(wick), wick, NA_character_)
+    )) %>%
+    fill(filt, .direction = "up") %>%
+    fill(extras, .direction = "down") %>%
+    mutate(totrun = if_else(name5 == "total", value, NA_character_)) %>%
+    filter(!is.na(totrun)) %>%
+    select(team, over, bat, bowl, ns, bat_run, extras, totrun, filt) %>%
+    mutate(file = x) %>%
+    group_by(team, over, file) %>%
+    mutate(over2 = as.numeric(as.character(over))) %>%
+    mutate(ovball = 1:n()) %>%
+    mutate(innball = over2 * 6 + ovball) %>%
+    ungroup() %>%
+    mutate(lagte = lag(team)) %>%
+    mutate(inn = if_else(is.na(lagte), "1",
+      if_else(lagte != team, "2", NA_character_)
+    )) %>%
+    fill(inn, .direction = "down") %>%
+    select(-lagte)
+
+
+
+  # d_test <- df %>% separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8"), fill = "right") %>%
+  #                         filter(n1 == "info")  %>%
+  #                        filter(n2 != "players") %>%
+  #                       filter(n2 != "registry") %>%
+  #                      filter(n3 != "group") %>%
+  #                     filter(n2 != "officials") %>%
+  #                    mutate(col2 = if_else(n3 == "winner", n3, n2)) %>%
+  #                   mutate(col3 = if_else(col2 == "outcome", paste(n4, value), value)) %>%
+  #                  mutate(col4 = if_else(col2 == "winner", paste(n2,n3, sep = "_"), col2)) %>%
+  #                 select(col4,col3) %>%
+  #                pivot_wider(names_from = col4, values_from = col3)  %>%
+  #               select(-team)
+
+
+
+  # innr2 <- innr %>% bind_cols(d_test)
+
+  return(innr)
+}
+
+
+
+
+
+files <- list.files()
+
+dataset2 <- map_dfr(files, fileread)
+````
+
+```{r}
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+matchinfo <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+
+  df_info2 <- df_sep %>%
+    filter(name1 == "info") %>%
+    filter(name2 != "players") %>%
+    #  filter(name2 != "registry") %>%
+    # filter(name2 != "officials") %>%
+    #  filter(value != "D/L") %>%
+    # mutate(col2 = if_else(name2 == "event", name3, name2)) %>%
+    #    filter(col2 != "group") %>%
+    # mutate(col4 = if_else(col2 == "outcome", if_else(name3 == "winner", "outcome_t", "outcome_m"), col2)) %>%
+    #  mutate(col5 = if_else(col4 == "name", "comp", col4)) %>%
+    #   mutate(col6 = if_else(col5 == "toss", if_else(name3 == "decision", "toss_d", "toss_w"), col5)) %>%
+    #   mutate(col7 = if_else(col6 == "outcome_m", paste(name4, value, sep = "-"), value)) %>%
+    #    filter(col6 != "balls_per_over") %>%
+    # select(col6,col7) %>%
+    # pivot_wider(names_from = col6, values_from = col7)  %>%
+    mutate(file = x)
+
+  return(df_info2)
+}
+````
+
+
+```{r}
+
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+extr_count <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+  innr_extra <- df_sep %>%
+    filter(name1 == "innings") %>%
+    mutate(team = if_else(name2 == "team", value, NA_character_)) %>%
+    fill(team, .direction = "down") %>%
+    filter(name4 == "extras") %>%
+    filter(name5 %in% c("noballs", "wides")) %>%
+    ungroup() %>%
+    group_by(team) %>%
+    summarise(n = n()) %>%
+    mutate(file = x)
+
+
+
+
+
+  return(innr_extra)
+}
+
+
+files <- list.files()
+
+match_etras <- map_dfr(files, extr_count)
+```
+
+
+
+```{r}
+
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+
+play_list <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+
+
+
+  df_play <- df_sep %>%
+    filter(name2 == "players") %>%
+    mutate(no = parse_number(name3)) %>%
+    mutate(team = if_else(no < 10, str_sub(name3, 1, nchar(name3) - 1), str_sub(name3, 1, nchar(name3) - 2))) %>%
+    select(team, no, value) %>%
+    mutate(file = x)
+
+
+  colnames(df_play)[3] <- "player"
+
+
+
+
+  return(df_play)
+}
+
+
+files <- list.files()
+
+match_play <- map_dfr(files, play_list)
+```
+
+
+
+
+```{r}
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+
+
+files <- list.files()
+
+infos <- map_dfr(files, matchinfo)
+````
+
+```{r}
+
+infos %>%
+  group_by(name2) %>%
+  summarise(n = n())
+```
+  
+```{r}
+setwd("C:/Users/alext/OneDrive/Documents/data")
+
+teams = read_csv("teams.csv")
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+date <- infos %>%
+  filter(grepl("dates", name2)) %>%
+  group_by(file) %>%
+  mutate(fil = 1:n()) %>%
+  filter(fil == 1) %>%
+  select(value, file)
+
+colnames(date)[1] <- "Match_dat"
+
+event <- infos %>%
+  filter(name2 == "event") %>%
+  filter(name3 == "name") %>%
+  select(value, file)
+
+colnames(event)[1] <- "comp"
+
+
+
+gender <- infos %>%
+  filter(name2 == "gender") %>%
+  select(value, file)
+
+
+colnames(gender)[1] <- "gen"
+
+
+
+
+outcome_by <- infos %>%
+  filter(name2 == "outcome") %>%
+  filter(name3 == "by") %>%
+  select(name4, value, file)
+
+
+colnames(outcome_by)[1] <- "Outmeas"
+colnames(outcome_by)[2] <- "Outval"
+
+
+outcome_by2 <- infos %>%
+  filter(name2 == "outcome") %>%
+  filter(name3 %in% c("bowl_out", "eliminator", "winner")) %>%
+  select(value, file)
+
+
+colnames(outcome_by2)[1] <- "winning_team"
+
+
+toss_d <- infos %>%
+  filter(name2 == "toss") %>%
+  filter(name3 == "decision") %>%
+  select(value, file)
+
+colnames(toss_d)[1] <- "td"
+
+toss_w <- infos %>%
+  filter(name2 == "toss") %>%
+  filter(name3 == "winner") %>%
+  select(value, file)
+
+
+colnames(toss_w)[1] <- "tw"
+
+
+
+venue <- infos %>%
+  filter(name2 == "venue") %>%
+  select(value, file)
+
+colnames(venue)[1] <- "ground"
+
+colnames(teams)[1] <- "tw"
+
+colnames(teams)[3] <- "comp_t"
+
+
+
+info2 <- date %>%
+  left_join(event, by = "file") %>%
+  left_join(gender, by = "file") %>%
+  left_join(outcome_by, by = "file") %>%
+  left_join(outcome_by2, by = "file") %>%
+  left_join(toss_d, by = "file") %>%
+  left_join(toss_w, by = "file") %>%
+  left_join(venue, by = "file") %>%
+  left_join(teams, by = "tw")
+```
+
+```{r}
+
+
+info3 <- info2 %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  group_by(comp2) %>%
+  summarise(n = n())
+```
+
+
+```{r}
+
+
+tot <- info2 %>%
+  filter(is.na(comp_t)) %>%
+  group_by(tw) %>%
+  summarise(n = n())
+
+
+
+
+write.csv(tot, file = "unknown.csv")
+```
+
+
+```{r}
+
+
+
+all_dat <- dataset2 %>% left_join(info2, by = "file")
+```
+
+
+```{r}
+
+
+
+grounds <- all_dat %>%
+  group_by(ground, file) %>%
+  count() %>%
+  ungroup() %>%
+  group_by(ground) %>%
+  count()
+
+grounds
+```
+
+`
+```{r}
+
+
+dat2 <- all_dat %>%
+  group_by(team, file) %>%
+  mutate(ball2 = row_number()) %>%
+  ungroup() %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(bat_run = as.numeric(as.character(bat_run)), extras = as.numeric(as.character(extras)), as.numeric(as.character(bat_run)), totrun = as.numeric(as.character(totrun)))
+
+dat2$yy <- as.numeric(as.character(dat2$yy))
+````
+
+
+```{r}
+
+
+test <- dat2 %>%
+  group_by(filt) %>%
+  summarise(n = n())
+```
+
+
+
+```{r}
+
+
+
+extra <- all_dat %>%
+  group_by(file, team) %>%
+  mutate(extra2 = as.numeric(as.character(extras))) %>%
+  summarise(totext = sum(extra2)) %>%
+  ungroup() %>%
+  select(file, team, totext)
+````
+
+
+```{r}
+
+
+
+match_win_summ <- dat2 %>%
+  mutate(wincat = if_else(winning_team == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, team) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  group_by(balls, runs) %>%
+  summarise(n = n())
+```
+
+
+```{r}
+
+
+match_win_summ2 <- dat2 %>%
+  mutate(wincat = if_else(winning_team == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, team) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  group_by(balls, runs) %>%
+  group_by(balls, runs) %>%
+  summarise(n = n(), totwin = sum(wincat)) %>%
+  mutate(per = totwin / n) %>%
+  filter(balls < 121)
+
+
+
+
+ggplot(match_win_summ2, aes(x = balls, y = runs, col = per)) +
+  geom_tile() +
+  scale_color_viridis_c()
+````
+
+
+```{r}
+
+
+
+col <- c("0" = "#008c7e", "1" = "#4b005e")
+
+
+
+match_win_summ <- dat2 %>%
+  mutate(wincat = if_else(winning_team == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, team) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  group_by(balls, runs, wincat) %>%
+  summarise(n = n()) %>%
+  filter(balls < 121)
+
+ggplot(match_win_summ, aes(x = balls, y = runs, col = as.factor(wincat))) +
+  geom_point(alpha = 0.2, size = 4) +
+  scale_color_manual(values = col) +
+  labs(x = "Runs", y = "Ball", title = "Win Status by Ball") +
+  guides(col = guide_legend(title = "Win Status")) +
+  theme(panel.background = element_rect("#e6e6e6"), panel.grid = element_blank(), plot.background = element_rect("#e6e6e6"), legend.background = element_rect("#e6e6e6"), legend.key = element_rect("#e6e6e6"), plot.title = element_text(colour = "#757575", size = 18, face = "bold"))
+```
+
+
+
+```{r}
+
+
+
+
+
+win <- dat2 %>%
+  ungroup() %>%
+  filter(inn == 1) %>%
+  mutate(wincat = if_else(winning_team == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, inn) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  mutate(win = if_else(wincat == 1, "Yes", "No")) %>%
+  mutate(tosswin = if_else(tw == team, 1, 0)) %>%
+  ungroup() %>%
+  select(balls, runs, wicks, tosswin, win, gen)
+
+win$win <- as.factor(win$win)
+```
+
+
+
+
+
+
+
+```{r}
+
+
+
+
+tot1st <- dat2 %>%
+  filter(inn == 1) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  group_by(file) %>%
+  summarise(totreq = sum(totrun, na.rm = T))
+
+
+
+win2 <- dat2 %>%
+  filter(inn == 2) %>%
+  mutate(wincat = if_else(winning_team == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, inn) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  mutate(win = if_else(wincat == 1, "Yes", "No")) %>%
+  left_join(tot1st, by = "file") %>%
+  mutate(rrun = if_else(totreq - runs < 0, 0, totreq - runs)) %>%
+  mutate(tosswin = if_else(tw == team, 1, 0)) %>%
+  ungroup() %>%
+  select(balls, runs, wicks, win, rrun, tosswin, gen) %>%
+  filter(balls < 150)
+
+win2$win <- as.factor(win2$win)
+```
+
+```{r}
+
+test <- win2 %>%
+  group_by(file) %>%
+  summarise(totwick = sum(wickloss))
+```
+
+
+```{r}
+
+
+
+win_split <- initial_split(win, prop = .85, strata = "win")
+win_train <- training(win_split)
+win_test <- testing(win_split)
+```
+
+
+```{r}
+
+
+
+
+win_split2 <- initial_split(win2, prop = .85, strata = "win")
+win_train2 <- training(win_split2)
+win_test2 <- testing(win_split2)
+```
+
+
+
+
+
+```{r}
+
+
+
+
+lgmod <- logistic_reg() %>%
+  set_engine("glm")
+````
+
+
+
+
+```{r}
+
+lgmod3 <- fit(lgmod, win ~ ., data = win_train)
+```
+
+
+```{r}
+
+lgmod2 <- fit(lgmod, win ~ ., data = win_train2)
+```
+
+
+
+```{r}
+
+
+
+x <- predict(lgmod3, new_data = win_test, type = "prob") %>%
+  mutate(wins = win_test$win, balls = win_test$balls, runs = win_test$runs, wicks = win_test$wicks)
+```
+
+
+
+
+```{r}
+
+
+test_preds1 <- predict(lgmod3, new_data = win_test)
+test_preds <- predict(lgmod3, new_data = win_test, type = "prob")
+
+test_preds2 <- predict(lgmod2, new_data = win_test2)
+test_pred3 <- predict(lgmod2, new_data = win_test2, type = "prob")
+
+ex <- win_test %>%
+  bind_cols(test_preds1) %>%
+  bind_cols(test_preds) %>%
+  select(win, .pred_No, .pred_Yes, .pred_class) %>%
+  mutate(inn = "1st")
+
+
+ex2 <- win_test2 %>%
+  bind_cols(test_preds2) %>%
+  bind_cols(test_pred3) %>%
+  select(win, .pred_No, .pred_Yes, .pred_class) %>%
+  mutate(inn = "2nd")
+
+
+
+
+
+mod1 <- roc_curve(ex, win, .pred_Yes)
+
+mod2 <- roc_curve(ex2, win, .pred_Yes)
+
+
+
+
+mod1a <- mod1 %>% mutate(inn = "1st")
+
+mod2a <- mod2 %>% mutate(inn = "2nd")
+
+
+exes <- mod1a %>% bind_rows(mod2a)
+
+
+cols2 <- c("1st" = "#008c7e", "2nd" = "#4b005e")
+
+
+ggplot(exes, aes(x = specificity, y = sensitivity, col = inn)) +
+  geom_line() +
+  geom_abline(
+    lty = 2, alpha = 0.5,
+    color = "grey",
+    size = 1.2
+  ) +
+  scale_color_manual(values = cols2) +
+  labs(title = "Innings ROC Curve") +
+  guides(colour = guide_legend(title = "Innings")) +
+  theme_minimal()
+```
+
+
+```{r}
+
+
+onegame <- dat2 %>%
+  filter(yy == 2021) %>%
+  filter(file == "1250310.json")
+
+
+onegam1 <- onegame %>%
+  filter(inn == 1) %>%
+  mutate(wincat = if_else(winner == team, 1, 0)) %>%
+  mutate(wincat = if_else(winner == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, inn) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  mutate(win = if_else(wincat == 1, "Yes", "No")) %>%
+  mutate(tosswin = if_else(tw == team, 1, 0)) %>%
+  ungroup()
+
+
+
+
+tot1stg <- onegame %>%
+  filter(inn == 1) %>%
+  mutate(tot = as.numeric(as.character(totrun))) %>%
+  group_by(file) %>%
+  summarise(totreq = sum(tot, na.rm = T))
+
+
+
+
+omegam2 <- onegame %>%
+  filter(inn == 2) %>%
+  mutate(wincat = if_else(winner == team, 1, 0)) %>%
+  mutate(wincat = if_else(winner == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  group_by(file, inn) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  mutate(win = if_else(wincat == 1, "Yes", "No")) %>%
+  left_join(tot1stg, by = "file") %>%
+  mutate(rrun = if_else(totreq - runs < 0, 0, totreq - runs)) %>%
+  mutate(tosswin = if_else(tw == team, 1, 0)) %>%
+  ungroup()
+
+
+
+
+x <- predict(lgmod3, new_data = onegam1, type = "prob")
+y <- predict(lgmod2, new_data = omegam2, type = "prob")
+
+
+
+omegame_pred <- onegam1 %>%
+  bind_cols(x) %>%
+  select(over, team, bat, bowl, innball, totrun, .pred_Yes, .pred_No)
+
+
+
+colnames(omegame_pred)[7] <- "Durham"
+colnames(omegame_pred)[8] <- "Northamptonshire"
+
+
+omegame_pred2 <- omegam2 %>%
+  bind_cols(y) %>%
+  select(over, team, bat, bowl, innball, totrun, .pred_No, .pred_Yes)
+
+
+colnames(omegame_pred2)[7] <- "Durham"
+colnames(omegame_pred2)[8] <- "Northamptonshire"
+
+
+onegam <- omegame_pred %>%
+  bind_rows(omegame_pred2) %>%
+  mutate(row = row_number()) %>%
+  gather("team", "WinPer", -over, -team, -bat, -bowl, -innball, -totrun, -row)
+
+
+library(scales)
+
+cols3 <- c("Durham" = "#008c7e", "Northamptonshire" = "#4b005e")
+
+
+ggplot(onegam, aes(x = row, y = WinPer, col = team)) +
+  geom_line(size = 2) +
+  scale_colour_manual(values = cols3) +
+  scale_y_continuous(labels = percent_format()) +
+  guides(colour = guide_legend(title = "Team")) +
+  labs(x = "Ball", y = "Win Chance %", title = "Durham v Northampton Blast 2019") +
+  theme(panel.background = element_rect("#e6e6e6"), panel.grid = element_blank(), plot.background = element_rect("#e6e6e6"), legend.background = element_rect("#e6e6e6"), legend.key = element_rect("#e6e6e6"), plot.title = element_text(colour = "#757575", size = 18, face = "bold"))
+````
+
+
+```{r}
+
+
+
+allgames_1 <- dat2 %>%
+  filter(inn == 1) %>%
+  mutate(wincat = if_else(winning_team == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, inn) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  mutate(win = if_else(wincat == 1, "Yes", "No")) %>%
+  mutate(tosswin = if_else(tw == team, 1, 0)) %>%
+  ungroup()
+
+pred_dat <- predict(lgmod3, new_data = allgames_1, type = "prob")
+
+
+
+all_games3 <- allgames_1 %>%
+  bind_cols(pred_dat) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  mutate(lagy = lag(.pred_Yes), lagn = lag(.pred_No)) %>%
+  mutate(batdelt = .pred_Yes - lagy) %>%
+  mutate(bowldelt = .pred_No - lagn)
+```
+
+
+
+```{r}
+
+
+allgames_2 <- dat2 %>%
+  filter(inn == 2) %>%
+  mutate(wincat = if_else(winning_team == team, 1, 0)) %>%
+  mutate(totrun = as.numeric(as.character(totrun))) %>%
+  mutate(wickloss = if_else(filt == "stumped", 1,
+    if_else(filt == "run out", 1,
+      if_else(filt == "retired out", 1,
+        if_else(filt == "retired hurt", 1,
+          if_else(filt == "obstructing the field", 1,
+            if_else(filt == "lbw", 1,
+              if_else(filt == "hit wicket", 1,
+                if_else(filt == "caught and bowled", 1,
+                  if_else(filt == "caught", 1,
+                    if_else(filt == "bowled", 1, 0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )) %>%
+  filter(!is.na(wincat)) %>%
+  group_by(file, inn) %>%
+  mutate(runs = cumsum(totrun), wicks = cumsum(wickloss), balls = ball2 * 1) %>%
+  mutate(win = if_else(wincat == 1, "Yes", "No")) %>%
+  mutate(tosswin = if_else(tw == team, 1, 0)) %>%
+  ungroup()
+
+pred_dat <- predict(lgmod3, new_data = allgames_2, type = "prob")
+
+
+
+all_games4 <- allgames_2 %>%
+  bind_cols(pred_dat) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  mutate(lagy = lag(.pred_Yes), lagn = lag(.pred_No)) %>%
+  mutate(batdelt = .pred_Yes - lagy) %>%
+  mutate(bowldelt = .pred_No - lagn)
+````
+
+
+
+
+```{r}
+
+
+fin_dat <- all_games3 %>%
+  bind_rows(all_games4)
+```
+
+
+
+```{r}
+
+
+
+comps <- fin_dat %>%
+  group_by(comp) %>%
+  summarise(n = n())
+```
+
+
+
+
+```{r}
+
+
+vitality_blast <- fin_dat %>%
+  filter(comp == "Vitality Blast") %>%
+  filter(yy == 2021)
+
+
+
+vital_bat <- vitality_blast %>%
+  group_by(bat) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
+  mutate(wpa10 = totwpa / n)
+```
+
+
+
+```{r}
+
+
+
+hales <- vitality_blast %>%
+  filter(bat == "AD Hales") %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  group_by(file) %>%
+  summarise(tr = sum(batr), ball = n(), wpa = sum(batdelt, na.rm = T))
+
+
+
+
+hales2 <- vitality_blast %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  filter(file == "1250310.json")
+```
+
+
+
+```{r}
+
+
+
+
+vitality_blast2 <- fin_dat %>%
+  filter(comp %in% c("Vitality Blast", "NatWest T20 Blast")) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  group_by(yy, bat) %>%
+  summarise(tr = sum(batr), ball = n(), wpa = sum(batdelt, na.rm = T), n = n() / 10) %>%
+  mutate(wpa10 = wpa / n) %>%
+  filter(bat == "JP Inglis")
+
+
+ggplot(vitality_blast2, aes(x = yy, y = wpa10)) +
+  geom_col()
+```
+
+
+
+```{r}
+
+comps <- fin_dat %>%
+  group_by(comp) %>%
+  summarise(n = n())
+```
+
+
+```{r}
+
+
+
+
+vitality_blast3 <- fin_dat %>%
+  filter(comp %in% c("Vitality Blast", "NatWest T20 Blast")) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  group_by(bat) %>%
+  summarise(tren = sum(batr), ballen = n(), wpaen = sum(batdelt, na.rm = T), n = n() / 10) %>%
+  mutate(wpa10en = wpaen / n)
+```
+
+
+
+
+## vitalblast 2022
+
+```{r}
+
+
+vb_22_bat <- fin_dat %>%
+  filter(comp %in% c("Vitality Blast")) %>%
+              filter(yy ==2022) %>%
+                   mutate(batr = as.numeric(as.character(bat_run))) %>%
+  group_by(bat) %>%
+  summarise(tren = sum(batr), ballen = n(), wpaen = sum(batdelt, na.rm = T), n = n() / 10) %>%
+  mutate(wpa10en = (wpaen / n)*100) %>%
+            filter(ballen > 20)
+
+
+
+ggplot(vb_22_bat, aes(x = tren, size = wpa10en, y=  wpa10en)) + geom_point()
+
+
+
+
+
+```
+
+
+```{r}
+
+
+
+vitality_blast4 <- fin_dat %>%
+  filter(comp %in% c("Vitality Blast", "NatWest T20 Blast")) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+                  group_by(yy, bat) %>%
+                            summarise(tren = sum(batr), ballen = n(), wpaen = sum(batdelt, na.rm = T), n = n() / 10) %>%
+  mutate(wpa10en = (wpaen / n)*100) %>%
+            filter(ballen > 50) %>% 
+                select(yy, bat, wpa10en) %>%
+                    pivot_wider(names_from = yy, values_from = wpa10en)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+
+
+
+ipl_bat <- fin_dat %>%
+  filter(comp %in% c("Indian Premier League")) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  group_by(bat) %>%
+  summarise(tripl = sum(batr), ballipl = n(), wpaipl = sum(batdelt, na.rm = T), n = n() / 10) %>%
+  mutate(wpa10ipl = wpaipl / n)
+```
+
+
+
+```{r}
+
+
+bat_com <- vitality_blast3 %>%
+  left_join(ipl_bat, by = "bat") %>%
+  filter(!is.na(tripl)) %>%
+  filter(ballen > 50) %>%
+  filter(ballipl > 50)
+
+
+
+ggplot(bat_com, aes(x = wpa10en, y = wpa10ipl, size = ballipl)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+
+
+```{r}
+
+
+vitality_bowl <- fin_dat %>%
+  mutate(over = as.numeric(as.character(over))) %>%
+  mutate(deathov = if_else(over > 15, "death", "not")) %>%
+  filter(comp == "Vitality Blast") %>%
+  filter(deathov == "death") %>%
+  group_by(bowl, yy) %>%
+  summarise(n = n(), totwap = sum(bowldelt, na.rm = T)) %>%
+  mutate(wpaov = totwap / (n / 6))
+```
+
+
+```{r}
+
+
+
+
+
+playdat_bat <- fin_dat %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  filter(is.na(comp2))
+```
+
+
+```{R}
+
+comp2 = "international"
+bat = "Fazalhaq Farooqi"
+n = 0
+totwpa = 0
+wpa10 = 0
+
+
+pl5 = tibble(comp2, bat, n, totwpa, wpa10)
+
+
+playdat_bat <- fin_dat %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%         
+  group_by(comp2, bat) %>%
+  summarise(n = n(), totwpa = sum(batdelt, na.rm = T)) %>%
+  mutate(wpa10 = totwpa / (n / 10)) %>%
+  bind_rows(pl5)
+
+
+colnames(playdat_bat)[2] <- "player"
+colnames(playdat_bat)[3] <- "bf"
+
+
+playdat_bowl <- fin_dat %>%
+   mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
+  group_by(comp2, bowl) %>%
+  summarise(n = n(), totwpa = sum(bowldelt, na.rm = T)) %>%
+  mutate(wpa6 = totwpa / (n / 6))
+
+colnames(playdat_bowl)[2] <- "player"
+colnames(playdat_bowl)[3] <- "bb"
+
+play_stats <- playdat_bat %>% left_join(playdat_bowl, by = c("player", "comp2"))
+```
+
+
+
+```{r}
+
+
+
+
+match_play2 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(bowlrank = rank(desc(bb))) %>%
+  filter(bowlrank < 6) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bowl_q = mean(wpa6) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+
+match_play4 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(bowlrank = rank(desc(bb))) %>%
+  filter(bowlrank < 6) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bowl_q = mean(wpa6) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+colnames(match_play4)[1] <- "Opp_t"
+colnames(match_play4)[3] <- "opp_b"
+
+
+
+match_play5 <- match_play2 %>%
+  left_join(match_play4, by = c("file", "team2")) %>%
+  mutate(bowldelt = if_else(bowl_q > 0, bowl_q - opp_b, bowl_q - opp_b))
+```
+
+
+
+
+```{r}
+
+
+
+
+match_bat2 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(bf))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(wpa10) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+
+match_bat4 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(bf))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(wpa10) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+
+colnames(match_bat4)[1] <- "Opp_t"
+colnames(match_bat4)[3] <- "opp_b"
+
+
+
+match_bat5 <- match_bat2 %>%
+  left_join(match_bat4, by = c("file", "team2")) %>%
+  mutate(batdelt = if_else(bat_q > 0, bat_q - opp_b, bat_q - opp_b))
+```
+
+
+
+
+```{r}
+
+
+
+team_scor_ov2 <- team_scor_ov %>%
+  mutate(totalr = round(rr * 120, 0), total_op = round(rr_op * 120, 0)) %>%
+  mutate(delta = totalr - total_op)
+```
+
+
+
+```{r}
+
+
+
+
+
+ggplot(team_scor_ov2, aes(x = delta)) +
+  geom_histogram(binwidth = 5, fill = "#fc4e03", col = "#000021") +
+  labs(x = "Run Difference", title = "Histogram of the Target Run Difference") +
+  theme(panel.background = element_rect(fill = "#000021"), panel.grid.minor = element_blank(), plot.background = element_rect(fill = "#000021"), text = element_text(colour = "white"), axis.text = element_text(colour = "white"))
+```
+
+
+
+
+
+```{r}
+
+
+team_scor_ov3 <- team_scor_ov2 %>%
+  select(team, file, delta) %>%
+  left_join(info2, by = "file") %>%
+  left_join(match_play5, by = c("file", "team")) %>%
+  left_join(match_bat5, by = c("file", "team")) %>%
+  select(team, file, delta, Match_dat, bowldelt, batdelt)
+```
+
+
+
+```{r}
+
+
+model_dat <- team_scor_ov3 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year < 2022) %>%
+  filter(!is.na(delta)) %>%
+  filter(!is.na(bowldelt)) %>%
+  filter(!is.na(batdelt))
+```
+
+
+```{r}
+
+
+model_dat1 <- model_dat %>% mutate(win = if_else(delta < 0, "No", "Yes"))
+
+
+cols24 <- c("Yes" = "#fc4e03", "No" = "#d9ed00")
+
+ggplot(model_dat1, aes(x = batdelt, y = bowldelt, col = win)) +
+  geom_point(alpha = 0.4) +
+  scale_color_manual(values = cols24) +
+  theme(panel.background = element_rect(fill = "#000021"), panel.grid = element_blank())
+```
+
+
+
+```{r}
+
+
+
+library(tidymodels)
+```
+
+
+
+
+```{r}
+
+
+
+split <- initial_split(model_dat, prop = 0.75)
+
+train_dat <- training(split)
+
+testing_dat <- testing(split)
+```
+
+
+
+
+```{r}
+
+
+crick_rec <- recipe(delta ~ bowldelt + batdelt, data = train_dat)
+
+
+tune_spec <- rand_forest(
+  mtry = tune(),
+  trees = tune(),
+  min_n = tune(),
+) %>%
+  set_mode("regression") %>%
+  set_engine("ranger", keep.inbag=TRUE)
+
+
+tune_wf <- workflow() %>%
+  add_recipe(crick_rec) %>%
+  add_model(tune_spec)
+
+
+set.seed(455545)
+cick_folds <- vfold_cv(train_dat)
+
+
+
+doParallel::registerDoParallel()
+
+set.seed(44355)
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = cick_folds,
+  grid = 20
+)
+
+tune_res
+
+
+
+
+tune_res %>%
+  collect_metrics() %>%
+  filter(.metric == "rmse") %>%
+  select(mean, min_n, mtry, trees) %>%
+  pivot_longer(min_n:trees,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") +
+  labs(x = NULL, y = "RMSE")
+
+
+
+
+tune_res %>%
+  collect_metrics() %>%
+  filter(.metric == "rsq") %>%
+  select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") +
+  labs(x = NULL, y = "RSQ")
+```
+
+```{r}
+
+
+select_best(tune_res)
+```
+
+
+```{r}
+
+
+best <- select_best(tune_res)
+
+final_rf1 <- finalize_model(
+  tune_spec,
+  best
+)
+
+final_rf1
+
+fin_rf2 <- final_rf1 %>%
+  fit(delta ~ bowldelt + batdelt, data = testing_dat)
+
+
+
+
+
+preds <- predict(fin_rf2, new_data = testing_dat)
+
+testing_pred2 <- testing_dat %>%
+  bind_cols(preds) %>%
+  ungroup()
+
+
+ggplot(testing_pred2, aes(x = delta, y = .pred)) +
+  geom_point(alpha = 0.5)
+
+rmse(testing_pred2, truth = delta, estimate = .pred)
+```
+
+
+```{r}
+
+
+model_dat_test <- team_scor_ov3 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year == 2022) %>%
+  filter(!is.na(bowldelt)) %>%
+  filter(!is.na(batdelt))
+
+
+predictions <- predict(fin_rf2, new_data = model_dat_test)
+
+
+model_dat_test2 <- model_dat_test %>%
+  bind_cols(predictions) %>%
+  left_join(info2, by = "file") %>%
+  filter(gen == "male") %>%
+  filter(team %in% c("England", "West Indies")) %>%
+  select(team, Match_dat, delta, .pred) %>%
+  pivot_longer(cols = 4:5, names_to = "measure", values_to = "value") %>%
+  mutate(meas = if_else(measure == "delta", "Actual", "Predicted"))
+
+
+cols <- c("Actual" = "#fc4e03", "Predicted" = "#d9ed00")
+
+
+ggplot(model_dat_test2, aes(x = Match_dat, y = value, col = meas)) +
+  geom_point(size = 4) +
+  facet_grid(rows = "team") +
+  scale_colour_manual(values = cols) +
+  guides(colour = guide_legend(title = "Measure")) +
+  labs(title = "Model Performance Compared to Actual", x = "Match Date", y = "Run Diff") +
+  theme(
+    panel.background = element_rect(fill = "#000021"), panel.grid.minor = element_blank(), plot.background = element_rect(fill = "#000021"), text = element_text(colour = "white"), axis.text = element_text(colour = "white"), panel.grid.major.x = element_blank(),
+    legend.background = element_rect(fill = "#000021"), strip.background = element_rect(fill = "#000021"), strip.text = element_text(colour = "white", face = "bold"), legend.key = element_rect(fill = "#000021")
+  )
+```
+
+#### world t20 
+
+
+```{r}
+
+
+  player = c("JC Buttler", "MM Ali", "HC Brook", "SM Curran", "CJ Jordan", "LS Livingstone","DJ Malan", "AU Rashid", "PD Salt", "BA Stokes", "RJW Topley",
+           "DJ Willey", "CR Woakes", "MA Wood", "AD Hales")
+
+  pos = c("Batter", "All Rounder", "Batter", "Bowler", "Bowler", "Batter", "Batter", "Bowler", "Batter", "All Rounder", "Bowler", "Bowler", "Bowler", "Bowler", "Batter")
+
+
+
+
+
+england = tibble(player, pos) %>%
+                mutate(comp2 = "international") %>%
+                  mutate(team = "England") %>%
+                    left_join(play_stats, by = c("comp2", "player"))
+
+
+
+
+
+  player = c("AJ Finch", "AC Agar", "PJ Cummins", "TH David", "JR Hazlewood", "JP Inglis", "MR Marsh", "GJ Maxwell", "KW Richardson", "SPD Smith", "MA Starc", "MP Stoinis", "MS Wade", "DA Warner", "A Zampa")
+
+  pos = c("Batter", "Bowler", "Bowler", "Batter", "Bowler", "Batter", "Batter", "All Rounder", "All ROunder", "Batter", "Bowler", "Batter", "Batter", "Batter", "Batter") 
+
+
+
+
+
+austra = tibble(player, pos) %>%
+                mutate(comp2 = "international") %>%
+                  mutate(team = "Australia") %>%
+                    left_join(play_stats, by = c("comp2", "player"))
+
+
+
+
+
+  player = c("Mohammad Nabi", "Najibullah Zadran", "Rahmanullah Gurbaz", "Azmatullah Omarzai", "Darwish Rasooli", "Fareed Ahmad", "Fazalhaq Farooqi", 
+             "Afsar Zazai", "Ibrahim Zadran", "Mujeeb Ur Rahman", "Naveen-ul-Haq", "Qais Ahmad", "Rashid Khan", "Salim Safi", "Usman Ghani")
+
+  pos = c("All Rounder", "Batter", "Batter", "All Rounder", "Batter", "Bowler", "Bowler", "Batter", "Batter", "Bowler", "Bowler", "Bowler", "Bowler", "Batter", "Batter") 
+  
+  
+  
+  afghan = tibble(player, pos) %>%
+                mutate(comp2 = "international") %>%
+                  mutate(team = "Afghanistan") %>%
+                    left_join(play_stats, by = c("comp2", "player"))
+
+  
+  
+  
+  
+
+  player = c("KS Williamson", "TG Southee", "IS Sodhi", "MJ Santner", "GD Phillips", "JDS Neesham", "DJ Mitchell", "AF Milne", "MJ Guptil", "LH Ferguson", 
+             "DP Conway", "MS Chapman", "MG Bracewell", "TA Boult", "FH Allen")
+
+  pos = c("Batter", "Bowler", "Bowler", "All Rounder", "Batter", "All Rounder", "All Rounder", "Bowler", "Batter", "Bowler", "Batter", "All Rounder", "Batter", "Bowler", "Batter") 
+  
+  
+  
+  newzee = tibble(player, pos) %>%
+                mutate(comp2 = "international") %>%
+                  mutate(team = "New Zealand") %>%
+                    left_join(play_stats, by = c("comp2", "player"))
+
+  
+  
+
+  
+  group1 = england %>% bind_rows(austra) %>%
+                            bind_rows(afghan) %>%
+                                bind_rows(newzee)
+  
+
+
+```
+
+```{r}
+
+t20blast_stats = play_stats %>% 
+                         filter(comp2 == "England Blast")
+
+
+  player = c("JM Vince", "BR McDermott", "TJ Prest", "RA Whiteley", "TE Albert","LA Dawson", "NT Ellis", "CP Wood", "MS Crane", "SW Currie", "JJ Weatherley")
+
+
+  hampshire = tibble(player) %>%
+                            left_join(t20blast_stats, by = "player")
+
+
+  
+player = c("T Banton", "WCF Smeed", "T Kohler-Cadmore", "TB Abell", "TA Lammonby", "L Gregory", "BGF Green", "RE van der Merwe", "C Overton", "MJ Henry", "PM Siddle")
+
+
+   somerset = 
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+
+group1_qual_bat = group1 %>% 
+                                mutate(batter = if_else(pos == "Batter", 1, 
+                                                        if_else(pos == "All Rounder", 1, 0),0)) %>%
+                            filter(batter == 1) %>%
+                              group_by(team) %>%
+                              mutate(rank = rank(desc(wpa10))) %>%
+                                filter(rank < 7) %>%
+                                  summarise(batqual = mean(wpa10))
+
+
+group1_qual_bowl = group1 %>% 
+                                mutate(bowler = if_else(pos == "Bowler", 1, 
+                                                        if_else(pos == "All Rounder", 1, 0),0)) %>%
+                            filter(bowler == 1) %>%
+                              group_by(team) %>%
+                              mutate(rank = rank(desc(wpa6))) %>%
+                                filter(rank < 6) %>%
+                                  summarise(bowlqual = mean(wpa6))
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+
+play_pred_bowl_int = play_stats %>% ungroup() %>% 
+                                      filter(bb > 100) %>% 
+                                        filter(!is.na(comp2)) %>% 
+                                          filter(comp2 == "international") %>% 
+                                       select(player, wpa6) %>% 
+                                          rename(int_perf = wpa6)
+
+play_pred_bowl_int2 = play_stats %>% filter(bb > 100) %>% 
+                                        filter(!is.na(comp2)) %>% 
+                                          filter(comp2 != "international") %>% 
+                                                left_join(play_pred_bowl_int, by = "player") %>% 
+                                              filter(!is.na(int_perf)) %>% 
+                                                  select(comp2, wpa6, int_perf)
+
+                                
+
+mod_int = lm(int_perf ~., play_pred_bowl_int2)
+
+
+mod_int
+
+comps = play_pred_bowl_int2 %>% group_by(comp2) %>% 
+                                      slice_max(wpa6) %>%
+                                        mutate(inc = 1) %>% 
+                                          select(comp2, inc)
+
+
+play_stats_pred1 = play_stats %>% left_join(comps, by = "comp2") %>% 
+                                      filter(inc == 1)
+
+
+preds2 = predict( mod_int, play_stats_pred1)
+
+
+play_int_act = play_stats %>% filter(comp2 == "international") %>% 
+                              ungroup() %>%
+                              select(player, wpa6) %>% 
+                                rename(int_perf = wpa6)
+
+
+play_stats_pred = play_stats_pred1 %>% bind_cols(preds2) %>% 
+                                          left_join(play_int_act, by = "player")
+
+colnames(play_stats_pred)[10] = "predict"
+
+
+
+play_stats_pred2 = play_stats_pred %>% mutate(delta = predict - int_perf)
+
+
+ggplot(play_stats_pred2, aes(x = bb, y= delta)) + geom_point()
+
+
+```
+
+
+
+```{r}
+
+
+
+int_cor = play_stats_pred %>% mutate(weight1 = predict * bb) %>% 
+                                  group_by(player) %>% 
+                                    summarise(totwt = sum(weight1, na.rm = T), totbb = sum(bb, na.rm = T)) %>% 
+                                        mutate(intpred = totwt/totbb) %>% 
+                                            select(player, intpred)
+
+
+
+
+
+play_stats6 = play_stats %>% filter(comp2 == "international") %>% 
+                                        left_join(int_cor, by = "player") %>%
+                                          mutate(wpamult = wpa6 * bb) %>%
+                                            mutate(predwpa = 
+
+
+
+```
+
+
+
+```{r}
+
+
+
+
+
+mod_spec <- rand_forest(
+  mtry = 1,
+  trees = 1000,
+  min_n = 39
+) %>%
+  set_mode("regression") %>%
+  set_engine("ranger")
+
+mod1 <- mod_spec %>%
+  fit(delta ~ bowldelt + batdelt, data = train_dat)
+```
+
+
+
+```{r}
+
+
+tidy(mod1)
+```
+
+
+```{r}
+
+
+
+test_dat <- team_scor_ov3 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year == 2022) %>%
+  filter(!is.na(bowldelt))
+```
+
+
+
+```{r}
+
+
+
+pred_dat <- predict(mod1, new_data = test_dat)
+
+
+test_dat1 <- test_dat %>% bind_cols(pred_dat)
+```
+
+
+
+
+```{r}
+
+
+x <- as_tibble(rnorm(1000, 1.52, 37.5))
+
+
+ggplot(x, aes(x = value)) +
+  geom_histogram()
+```
+
+
+
+
+```{r}
+
+
+
+ggplot(test_dat1, aes(x = delta, y = .pred)) +
+  geom_point()
+```
+
+
+
+```{r}
+
+
+
+distri <- model_dat %>%
+  mutate(rbd = round(bowldelt, 1), rtd = round(batdelt, 1)) %>%
+  group_by(rbd, rtd) %>%
+  summarise(tot = n())
+
+
+
+
+distri1 <- model_dat %>%
+  mutate(rbd = round(bowldelt, 1), rtd = round(batdelt, 1)) %>%
+  filter(rbd == -0.2) %>%
+  filter(rtd == -0.1) %>%
+  ungroup() %>%
+  summarise(std = sd(delta))
+```
+
+
+
+```{r}
+
+
+
+bpi <- fin_dat %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  group_by(file, bat, comp2) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  group_by(bat, comp2) %>%
+  summarise(matches = n(), meanb = mean(n))
+
+
+
+
+
+playdat_bat1 <- fin_dat %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  group_by(comp2, bat) %>%
+  summarise(n = n(), totwpa = sum(batdelt, na.rm = T)) %>%
+  mutate(wpa10 = totwpa / (n / 10)) %>%
+  left_join(bpi, by = c("bat", "comp2")) %>%
+  mutate(innwpa = wpa10 * meanb / 10)
+
+
+colnames(playdat_bat1)[2] <- "player"
+colnames(playdat_bat1)[3] <- "bf"
+```
+
+
+```{r}
+
+play_stats2 <- playdat_bat1 %>% left_join(playdat_bowl, by = c("player", "comp2"))
+```
+
+
+
+
+
+
+
+```{r}
+
+
+
+
+match_bat7 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  mutate(battot = wpa10 * meanb) %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(battot) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+
+match_bat8 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  mutate(battot = wpa10 * meanb) %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(battot) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+
+colnames(match_bat8)[1] <- "Opp_t"
+colnames(match_bat8)[3] <- "opp_b"
+
+
+
+match_bat9 <- match_bat7 %>%
+  left_join(match_bat8, by = c("file", "team2")) %>%
+  mutate(batdelt = if_else(bat_q > 0, bat_q - opp_b, bat_q - opp_b))
+```
+
+
+
+```{r}
+
+
+
+
+
+team_scor_ov4 <- team_scor_ov2 %>%
+  select(team, file, delta) %>%
+  left_join(info2, by = "file") %>%
+  left_join(match_play5, by = c("file", "team")) %>%
+  left_join(match_bat9, by = c("file", "team")) %>%
+  select(team, file, delta, Match_dat, bowldelt, batdelt)
+```
+
+
+```{r}
+
+
+
+ggplot(model_dat, aes(x = batdelt, y = delta)) +
+  geom_point()
+
+
+
+
+ggplot(model_dat, aes(x = bowldelt, y = delta)) +
+  geom_point()
+```
+
+
+```{r}
+
+
+
+model_dat <- team_scor_ov4 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year < 2022) %>%
+  filter(!is.na(delta)) %>%
+  filter(!is.na(bowldelt)) %>%
+  filter(!is.na(batdelt))
+
+
+
+
+split <- initial_split(model_dat, prop = 0.75)
+
+train_dat <- training(split)
+
+testing_dat <- testing(split)
+
+
+
+crick_rec <- recipe(delta ~ bowldelt + batdelt, data = train_dat)
+
+
+tune_spec <- rand_forest(
+  mtry = tune(),
+  trees = 1000,
+  min_n = tune()
+) %>%
+  set_mode("regression") %>%
+  set_engine("ranger")
+
+
+tune_wf <- workflow() %>%
+  add_recipe(crick_rec) %>%
+  add_model(tune_spec)
+
+
+set.seed(234)
+cick_folds <- vfold_cv(train_dat)
+
+
+
+doParallel::registerDoParallel()
+
+set.seed(345)
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = cick_folds,
+  grid = 20
+)
+
+tune_res
+
+
+tune_res %>%
+  collect_metrics() %>%
+  filter(.metric == "rsq") %>%
+  select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") +
+  labs(x = NULL, y = "AUC")
+````
+
+
+
+
+
+
+
+```{r}
+
+
+
+
+playdat_bat <- fin_dat %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  group_by(comp2, bat) %>%
+  summarise(n = n(), totwpa = sum(batdelt, na.rm = T)) %>%
+  mutate(wpa10 = totwpa / (n / 10))
+
+
+colnames(playdat_bat)[2] <- "player"
+colnames(playdat_bat)[3] <- "bf"
+
+
+playdat_bowl2 <- fin_dat %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(stage = if_else(over2 < 7, "Powerplay",
+    if_else(over2 > 15, "Death", "mid")
+  )) %>%
+  group_by(comp2, bowl, stage) %>%
+  summarise(n = n(), totwpa = sum(bowldelt, na.rm = T)) %>%
+  mutate(wpa6 = if_else(n > 35, totwpa / (n / 6), NA_real_)) %>%
+  select(comp2, bowl, stage, wpa6) %>%
+  pivot_wider(names_from = stage, values_from = wpa6)
+
+colnames(playdat_bowl2)[2] <- "player"
+colnames(playdat_bowl2)[3] <- "Death_WPA6"
+colnames(playdat_bowl2)[4] <- "Mid_WPA6"
+colnames(playdat_bowl2)[5] <- "PowerPlay_WPA6"
+
+
+play_stats3 <- playdat_bat %>% left_join(playdat_bowl2, by = c("player", "comp2"))
+```
+
+
+```{r}
+
+
+
+playdat_bowl2 <- fin_dat %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+                      filter(comp2 == "international") %>% 
+                            group_by(bowl, team) %>% 
+                                 summarise(n = n(), totwpa = sum(bowldelt, na.rm = T)) %>%
+  mutate(wpa6 = if_else(n > 20, totwpa / (n / 6), NA_real_)) 
+              
+
+
+
+
+```
+
+
+```{r}
+
+
+colnames(bpi)[1] <- "player"
+
+
+
+match_bat100 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(bpi, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(meanb))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(meanb, na.rm = T)) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+match_bat101 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(bpi, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(meanb))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(meanb)) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+
+colnames(match_bat101)[1] <- "Opp_t"
+colnames(match_bat101)[3] <- "opp_b"
+
+
+
+match_bat102 <- match_bat100 %>%
+  left_join(match_bat101, by = c("file", "team2")) %>%
+  mutate(ballfdelt = bat_q - opp_b)
+```
+
+
+
+
+
+```{r}
+
+
+
+
+match_play2 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  summarise(dwp6 = mean(Death_WPA6, na.rm = T) * 100, mwpa6 = mean(Mid_WPA6, na.rm = T) * 100, ppwpa6 = mean(PowerPlay_WPA6, na.rm = T)) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+
+
+match_play4 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  summarise(dwp6 = mean(Death_WPA6, na.rm = T) * 100, mwpa6 = mean(Mid_WPA6, na.rm = T) * 100, ppwpa6 = mean(PowerPlay_WPA6, na.rm = T)) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+
+
+colnames(match_play4)[1] <- "Opp_t"
+colnames(match_play4)[3] <- "opp_dwp6"
+colnames(match_play4)[4] <- "opp_mwp6"
+colnames(match_play4)[5] <- "opp_ppwp6"
+
+
+match_play5 <- match_play2 %>%
+  left_join(match_play4, by = c("file", "team2")) %>%
+  mutate(
+    bowldelt_death = if_else(dwp6 > 0, dwp6 - opp_dwp6, dwp6 - opp_dwp6),
+    bowldelt_mid = if_else(mwpa6 > 0, mwpa6 - opp_mwp6, mwpa6 - opp_mwp6),
+    bowldelt_pp = if_else(ppwpa6 > 0, ppwpa6 - opp_ppwp6, ppwpa6 - opp_ppwp6)
+  ) %>%
+  select(team, file, bowldelt_death, bowldelt_mid, bowldelt_pp)
+
+
+
+
+
+
+
+
+
+match_bat2 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(bf))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(wpa10) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+
+match_bat4 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(bf))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(wpa10) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+
+colnames(match_bat4)[1] <- "Opp_t"
+colnames(match_bat4)[3] <- "opp_b"
+
+
+
+match_bat5 <- match_bat2 %>%
+  left_join(match_bat4, by = c("file", "team2")) %>%
+  mutate(batdelt = if_else(bat_q > 0, bat_q - opp_b, bat_q - opp_b))
+
+
+
+
+
+team_scor_ov2 <- team_scor_ov %>%
+  mutate(totalr = round(rr * 120, 0), total_op = round(rr_op * 120, 0)) %>%
+  mutate(delta = totalr - total_op)
+
+
+
+
+
+
+team_scor_ov3 <- team_scor_ov2 %>%
+  select(team, file, delta) %>%
+  left_join(info2, by = "file") %>%
+  left_join(match_play5, by = c("file", "team")) %>%
+  left_join(match_bat5, by = c("file", "team")) %>%
+  left_join(match_bat102, by = c("file", "team")) %>%
+  select(team, file, delta, Match_dat, bowldelt_death, bowldelt_mid, bowldelt_pp, batdelt, ballfdelt)
+```
+
+
+
+
+
+```{R}
+
+
+
+
+model_dat <- team_scor_ov3 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year < 2022) %>%
+  filter(!is.na(delta)) %>%
+  filter(!is.na(bowldelt_death)) %>%
+  filter(!is.na(bowldelt_mid)) %>%
+  filter(!is.na(bowldelt_pp)) %>%
+  filter(!is.na(batdelt)) %>%
+  filter(!is.na(ballfdelt))
+
+
+
+split <- initial_split(model_dat, prop = 0.75)
+
+train_dat <- training(split)
+
+testing_dat <- testing(split)
+
+
+
+crick_rec <- recipe(delta ~ bowldelt_death + bowldelt_mid + bowldelt_pp + batdelt + ballfdelt, data = train_dat)
+
+
+tune_spec <- rand_forest(
+  mtry = tune(),
+  trees = 1000,
+  min_n = tune()
+) %>%
+  set_mode("regression") %>%
+  set_engine("ranger")
+
+
+tune_wf <- workflow() %>%
+  add_recipe(crick_rec) %>%
+  add_model(tune_spec)
+
+
+set.seed(234)
+cick_folds <- vfold_cv(train_dat, strata = delta)
+
+
+
+doParallel::registerDoParallel()
+
+set.seed(345)
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = cick_folds,
+  grid = 20
+)
+
+tune_res
+
+
+tune_res %>%
+  collect_metrics() %>%
+  filter(.metric == "rmse") %>%
+  select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") +
+  labs(x = NULL, y = "AUC")
+```
+
+
+
+
+
+
+```{r}
+
+
+
+crick_rec <-
+  recipe(delta ~ bowldelt_death + bowldelt_mid + bowldelt_pp + batdelt + ballfdelt, data = train_dat)
+
+xgb_spec <-
+  boost_tree(
+    trees = tune(),
+    mtry = tune(),
+    min_n = tune(),
+    learn_rate = 0.01
+  ) %>%
+  set_engine("xgboost") %>%
+  set_mode("regression")
+
+xgb_wf <- workflow(crick_rec, xgb_spec)
+xgb_wf
+
+
+
+
+
+set.seed(234)
+cick_folds2 <- vfold_cv(train_dat, strata = delta)
+````
+
+
+
+```{r}
+
+library(finetune)
+doParallel::registerDoParallel()
+
+set.seed(234)
+xgb_game_rs <-
+  tune_race_anova(
+    xgb_wf,
+    cick_folds2,
+    grid = 20,
+    control = control_race(verbose_elim = TRUE)
+  )
+
+xgb_game_rs
+```
+
+
+
+```{r}
+
+
+
+
+
+
+plot_race(xgb_game_rs)
+```
+
+
+
+
+
+```{r}
+
+
+xgb_last <-
+  xgb_wf %>%
+  finalize_workflow(select_best(xgb_game_rs, "rmse")) %>%
+  last_fit(split)
+
+xgb_last
+```
+
+
+
+```{r}
+
+
+library(vip)
+
+xgb_fit <- extract_fit_parsnip(xgb_last)
+vip(xgb_fit, geom = "point", num_features = 12)
+```
+
+
+
+
+
+```{r}
+
+
+
+
+
+match_bat_t1 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(file) %>%
+  mutate(teamno = 1:n()) %>%
+  filter(teamno < 12) %>%
+  select(team, file, no, player, wpa10)
+
+
+
+match_bat_t2 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(file) %>%
+  mutate(teamno = 1:n()) %>%
+  filter(teamno > 11) %>%
+  select(team, file, no, player, wpa10)
+
+colnames(match_bat_t2)[1] <- "opp_t"
+colnames(match_bat_t2)[4] <- "opp_pl"
+colnames(match_bat_t2)[5] <- "opp_wpa"
+
+
+match_bat_t3 <- match_bat_t1 %>%
+  left_join(match_bat_t2, by = c("no", "file")) %>%
+  filter(no < 8) %>%
+  mutate(delta = (wpa10 - opp_wpa) * 100) %>%
+  mutate(posdelt = paste("pos", no, sep = "_")) %>%
+  select(team, file, delta, posdelt) %>%
+  pivot_wider(names_from = posdelt, values_from = delta)
+
+
+
+
+
+match_bat_t4 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(file) %>%
+  mutate(teamno = n():1) %>%
+  filter(teamno < 12) %>%
+  select(team, file, no, player, wpa10)
+
+
+
+match_bat_t5 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats3, by = c("player", "comp2")) %>%
+  group_by(file) %>%
+  mutate(teamno = n():1) %>%
+  filter(teamno > 11) %>%
+  select(team, file, no, player, wpa10)
+
+colnames(match_bat_t5)[1] <- "opp_t"
+colnames(match_bat_t5)[4] <- "opp_pl"
+colnames(match_bat_t5)[5] <- "opp_wpa"
+
+
+match_bat_t6 <- match_bat_t4 %>%
+  left_join(match_bat_t5, by = c("no", "file")) %>%
+  filter(no < 8) %>%
+  mutate(delta = (wpa10 - opp_wpa) * 100) %>%
+  mutate(posdelt = paste("pos", no, sep = "_")) %>%
+  select(team, file, delta, posdelt) %>%
+  pivot_wider(names_from = posdelt, values_from = delta)
+
+
+match_bat_t7 <- match_bat_t3 %>%
+  bind_rows(match_bat_t6)
+```
+
+
+
+
+```{r}
+
+
+
+
+
+
+
+
+
+team_scor_ov3 <- team_scor_ov2 %>%
+  select(team, file, delta) %>%
+  left_join(info2, by = "file") %>%
+  left_join(match_play5, by = c("file", "team")) %>%
+  left_join(match_bat_t7, by = c("file", "team")) %>%
+  left_join(match_bat102, by = c("file", "team")) %>%
+  select(team, file, delta, Match_dat, bowldelt_death, bowldelt_mid, bowldelt_pp, ballfdelt, pos_1, pos_2, pos_3, pos_4, pos_5, pos_6, pos_7)
+
+
+
+
+
+
+
+
+model_dat <- team_scor_ov3 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year < 2022) %>%
+  filter(!is.na(delta)) %>%
+  filter(!is.na(bowldelt_death)) %>%
+  filter(!is.na(bowldelt_mid)) %>%
+  filter(!is.na(bowldelt_pp)) %>%
+  filter(!is.na(ballfdelt)) %>%
+  filter(!is.na(pos_1)) %>%
+  filter(!is.na(pos_2)) %>%
+  filter(!is.na(pos_3)) %>%
+  filter(!is.na(pos_4)) %>%
+  filter(!is.na(pos_5)) %>%
+  filter(!is.na(pos_6)) %>%
+  filter(!is.na(pos_7))
+```
+
+
+```{r}
+
+
+
+
+
+
+ggplot(model_dat, aes(x = ballfdelt, y = delta)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth()
+````
+
+
+
+
+```{r}
+
+
+split <- initial_split(model_dat, prop = 0.75)
+
+train_dat <- training(split)
+
+testing_dat <- testing(split)
+
+
+
+
+crick_rec <-
+  recipe(delta ~ bowldelt_death + bowldelt_mid + bowldelt_pp + ballfdelt + pos_1 + pos_2 + pos_3 + pos_4 + pos_5 + pos_6 + pos_6, data = train_dat)
+
+xgb_spec <-
+  boost_tree(
+    trees = tune(),
+    mtry = tune(),
+    min_n = tune(),
+    learn_rate = 0.01
+  ) %>%
+  set_engine("xgboost") %>%
+  set_mode("regression")
+
+xgb_wf <- workflow(crick_rec, xgb_spec)
+xgb_wf
+
+
+
+
+
+set.seed(234)
+cick_folds2 <- vfold_cv(train_dat, strata = delta)
+
+
+library(finetune)
+doParallel::registerDoParallel()
+
+set.seed(234)
+xgb_game_rs <-
+  tune_race_anova(
+    xgb_wf,
+    cick_folds2,
+    grid = 20,
+    control = control_race(verbose_elim = TRUE)
+  )
+
+xgb_game_rs
+
+
+
+plot_race(xgb_game_rs)
+```
+
+
+
+
+
+```{r}
+
+
+
+
+show_best(xgb_game_rs)
+```
+
+
+
+```{R}
+
+best <- select_best(xgb_game_rs, metric = "rsq")
+
+final_rf <- finalize_model(
+  xgb_spec,
+  best
+)
+
+final_rf
+
+fin_rf2 <- final_rf %>%
+  fit(delta ~ bowldelt_death + bowldelt_mid + bowldelt_pp + ballfdelt + pos_1 + pos_2 + pos_3 + pos_4 + pos_5 + pos_6 + pos_6, data = train_dat)
+
+
+
+
+preds <- predict(fin_rf2, new_data = testing_dat)
+
+testing_pred1 <- testing_dat %>%
+  bind_cols(preds) %>%
+  ungroup()
+
+rmse(testing_pred1, truth = delta, estimate = .pred)
+```
+
+
+
+```{r}
+
+
+
+
+preds <- predict(fin_rf2, new_data = testing_dat)
+
+testing_pred1 <- testing_dat %>%
+  bind_cols(preds) %>%
+  ungroup()
+
+ggplot(testing_pred1, aes(x = delta, y = .pred)) +
+  geom_point()
+
+rmse(testing_pred1, truth = delta, estimate = .pred)
+```
