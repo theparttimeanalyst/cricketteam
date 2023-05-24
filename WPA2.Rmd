@@ -2050,19 +2050,61 @@ t20blast_stats = play_stats %>%
 
 
   hampshire = tibble(player) %>%
-                            left_join(t20blast_stats, by = "player")
+                            left_join(t20blast_stats, by = "player") %>%
+                                mutate(team = "hawks")
 
 
   
 player = c("T Banton", "WCF Smeed", "T Kohler-Cadmore", "TB Abell", "TA Lammonby", "L Gregory", "BGF Green", "RE van der Merwe", "C Overton", "MJ Henry", "PM Siddle")
 
 
-   somerset = 
+   somerset = tibble(player) %>%
+                              left_join(t20blast_stats, by = "player") %>%
+                                mutate(team = "somerset")
+   
+   
+   match4 = hampshire %>% 
+                          bind_rows(somerset)
+   
+   
+   
+   match4_bat = match4  %>% group_by(team) %>%
+                              mutate(bat_rnk = rank(desc(wpa10))) %>%
+                               filter(bat_rnk < 7) %>%
+                                  ungroup() %>%
+                                    group_by(team) %>%
+                                      summarise(batrat = mean(wpa10))
+
+   match4_bat2 = match4_bat %>% rename(op_rat = batrat, opposition = team)
+   
+   
+   match4_bat3 = match4_bat %>% mutate(opposition = if_else(team == "hawks", "somerset", "hawks")) %>%
+                    left_join(match4_bat2, by = "opposition") %>%
+                                mutate(batdelt = batrat - op_rat)
+
+   match4_bowl = match4  %>% group_by(team) %>%
+                              filter(bb > 40) %>%
+                              mutate(bowl_rnk = rank(desc(wpa6))) %>%
+                               filter(bowl_rnk < 6) %>%
+                                  ungroup() %>%
+                                    group_by(team) %>%
+                                      summarise(bowlrat = mean(wpa10))
 
 
 
+   match4_bowl2 = match4_bowl %>% rename(op_rat = bowlrat, opposition = team)
+   
+   
+   match4_bowl3 = match4_bowl %>% 
+     mutate(opposition = if_else(team == "hawks", "somerset", "hawks")) %>%
+                    left_join(match4_bowl2, by = "opposition") %>%
+                                mutate(bowldelt = bowlrat -op_rat)
 
 
+match4_sum = match4_bat3 %>% 
+                            left_join(match4_bowl3, by = "team") %>%
+                                select(team, batdelt, bowldelt)
+   
 ```
 
 
