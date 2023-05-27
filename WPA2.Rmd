@@ -1588,7 +1588,7 @@ playdat_bat <- fin_dat %>%
   mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
   mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
                          if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%         
-  group_by(comp2, bat) %>%
+  group_by(comp2, bat, file) %>%
   summarise(n = n(), totwpa = sum(batdelt, na.rm = T)) %>%
   mutate(wpa10 = totwpa / (n / 10)) %>%
   bind_rows(pl5)
@@ -1916,7 +1916,508 @@ ggplot(testing_pred2, aes(x = delta, y = .pred)) +
 
 rmse(testing_pred2, truth = delta, estimate = .pred)
 ```
+```{r}
 
+model_dat_prob = model_dat1 %>% select(bowldelt, batdelt, win) %>%
+                                  mutate(winf = as.factor(as.character(win)))
+
+
+
+
+
+
+split <- initial_split(model_dat_prob, prop = 0.75, strata = winf)
+
+train_dat_prob <- training(split)
+
+testing_dat_prob <- testing(split)
+
+
+
+crick_rec_prob <- recipe(winf ~ bowldelt + batdelt, data = train_dat_prob)
+
+
+tune_spec_prob <- rand_forest(
+  mtry = tune(),
+  trees = 1000,
+  min_n = tune(),
+) %>%
+  set_mode("classification") %>%
+  set_engine("ranger", keep.inbag=TRUE)
+
+
+tune_wf <- workflow() %>%
+  add_recipe(crick_rec_prob) %>%
+  add_model(tune_spec_prob)
+
+
+set.seed(455545)
+cick_folds_prob <- vfold_cv(train_dat_prob)
+
+
+
+doParallel::registerDoParallel()
+
+set.seed(44355)
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = cick_folds_prob,
+  grid = 20
+)
+
+tune_res
+
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+
+
+tune_res %>%
+  collect_metrics() %>%
+            filter(.metric == "accuracy") %>%
+                 select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") 
+
+
+
+
+best <- select_best(tune_res)
+
+final_rf1 <- finalize_model(
+  tune_spec_prob,
+  best
+)
+
+final_rf1
+
+fin_rf2_prob <- final_rf1 %>%
+  fit(winf ~ bowldelt + batdelt, data = testing_dat_prob)
+
+
+
+
+
+```
+```{r}
+
+
+
+
+batdelt= c(-0.02, -0.01, 0, 0.01, 0.02)
+
+bowldelt = c(0,0,0,0,0)
+
+sumart = tibble(batdelt, bowldelt)
+
+
+
+test_pred =  predict(fin_rf2_prob, new_data = sumart, type = "prob")
+
+summart2 = sumart %>% bind_cols(test_pred)
+
+
+
+
+
+
+
+```
+
+```{r}
+
+
+
+
+batdelt <- seq(-1, 1, 0.001)
+
+
+bowldelt = seq(-1, 1, 0.001)
+
+bowl_sum = tibble(bowldelt) %>%
+                      mutate(ind = 1:n())
+
+summary = tibble(batdelt) %>%
+                        mutate(vers = 2000) %>%
+                            uncount(vers) %>%
+                                group_by(batdelt) %>%
+                                    mutate(ind = 1:n()) %>%
+                                        left_join(bowl_sum, by = "ind")
+
+
+test_pred2 =  predict(fin_rf2_prob, new_data = summary, type = "prob")
+
+boundary = summary %>% bind_cols(test_pred2) %>%
+                          mutate(win_cat = if_else(.pred_Yes > 0.5, "Win", "Lose"))
+
+
+
+ggplot(boundary, aes(x = batdelt, y = bowldelt, col = win_cat)) + geom_point()
+
+
+
+
+ggplot(boundary, aes(x = batdelt, y = bowldelt, col = .pred_Yes)) + geom_point()
+
+
+
+```
+```{r}
+
+playdat_bat2 <- fin_dat %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%         
+  group_by(comp2, bat, file) %>%
+  summarise(n = n(), totwpa = sum(batdelt, na.rm = T)) %>%
+  ungroup()%>%
+  group_by(comp2, bat) %>%
+  summarise(nb = sum(n), totwap = sum(totwpa), inn= n() ) %>%
+  mutate(wpa10 = totwap / (nb / 10), bbi = nb/inn) %>%
+  mutate(tot_bat_wp = bbi/10*wpa10)
+
+
+colnames(playdat_bat2)[2] <- "player"
+colnames(playdat_bat2)[3] <- "bf"
+
+
+playdat_bowl <- fin_dat %>%
+   mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
+  group_by(comp2, bowl) %>%
+  summarise(n = n(), totwpa = sum(bowldelt, na.rm = T)) %>%
+  mutate(wpa6 = totwpa / (n / 6))
+
+colnames(playdat_bowl)[2] <- "player"
+colnames(playdat_bowl)[3] <- "bb"
+
+play_stats2 <- playdat_bat2 %>% left_join(playdat_bowl, by = c("player", "comp2"))
+
+
+
+match_play2 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(bowlrank = rank(desc(bb))) %>%
+  filter(bowlrank < 6) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bowl_q = mean(wpa6) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+
+match_play4 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(bowlrank = rank(desc(bb))) %>%
+  filter(bowlrank < 6) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bowl_q = mean(wpa6) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+colnames(match_play4)[1] <- "Opp_t"
+colnames(match_play4)[3] <- "opp_b"
+
+
+
+match_play5 <- match_play2 %>%
+  left_join(match_play4, by = c("file", "team2")) %>%
+  mutate(bowldelt = if_else(bowl_q > 0, bowl_q - opp_b, bowl_q - opp_b))
+
+
+
+
+match_bat2 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(tot_bat_wp))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = sum(tot_bat_wp) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+
+
+match_bat4 <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(tot_bat_wp))) %>%
+  filter(batrank < 7) %>%
+  ungroup() %>%
+  group_by(team, file) %>%
+  summarise(bat_q = mean(tot_bat_wp) * 100) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = n():1)
+
+
+
+colnames(match_bat4)[1] <- "Opp_t"
+colnames(match_bat4)[3] <- "opp_b"
+
+
+
+match_bat5 <- match_bat2 %>%
+  left_join(match_bat4, by = c("file", "team2")) %>%
+  mutate(batdelt = if_else(bat_q > 0, bat_q - opp_b, bat_q - opp_b))
+
+```
+
+```{r}
+
+
+
+team_scor_ov3 <- team_scor_ov2 %>%
+  select(team, file, delta) %>%
+  left_join(info2, by = "file") %>%
+  left_join(match_play5, by = c("file", "team")) %>%
+  left_join(match_bat5, by = c("file", "team")) %>%
+  select(team, file, delta, Match_dat, bowldelt, batdelt)
+
+
+
+
+model_dat <- team_scor_ov3 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year < 2022) %>%
+  filter(!is.na(delta)) %>%
+  filter(!is.na(bowldelt)) %>%
+  filter(!is.na(batdelt))
+
+
+
+
+
+
+model_dat1 <- model_dat %>% mutate(win = if_else(delta < 0, "No", "Yes"))
+
+```
+
+
+
+```{r}
+
+
+model_test = model_dat1 %>% mutate(winno = if_else(win == "Yes", 1,0)) %>%
+                                mutate(roundbat = round(batdelt,0)) %>%
+                                      group_by(roundbat) %>%
+                                          summarise(tot = sum(winno), n = n()) %>%
+                                              mutate(per = tot/n)
+
+
+
+
+ggplot(model_test, aes(x = roundbat, y = per)) + geom_point()
+
+
+```
+
+
+
+
+```{r}
+model_dat_prob = model_dat1 %>% select(bowldelt, batdelt, win) %>%
+                                  mutate(winf = as.factor(as.character(win)))
+
+
+
+
+
+
+split <- initial_split(model_dat_prob, prop = 0.75, strata = winf)
+
+train_dat_prob <- training(split)
+
+testing_dat_prob <- testing(split)
+
+
+
+crick_rec_prob <- recipe(winf ~ bowldelt + batdelt, data = train_dat_prob)
+
+
+tune_spec_prob <- rand_forest(
+  mtry = tune(),
+  trees = 1000,
+  min_n = tune(),
+) %>%
+  set_mode("classification") %>%
+  set_engine("ranger", keep.inbag=TRUE)
+
+
+tune_wf <- workflow() %>%
+  add_recipe(crick_rec_prob) %>%
+  add_model(tune_spec_prob)
+
+
+set.seed(455545)
+cick_folds_prob <- vfold_cv(train_dat_prob)
+
+
+
+doParallel::registerDoParallel()
+
+set.seed(44355)
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = cick_folds_prob,
+  grid = 20
+)
+
+tune_res
+
+
+tune_res %>%
+  collect_metrics() %>%
+            filter(.metric == "accuracy") %>%
+                 select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") 
+
+
+
+```
+
+
+```{r}
+
+
+
+
+best <- select_best(tune_res)
+
+final_rf1 <- finalize_model(
+  tune_spec_prob,
+  best
+)
+
+final_rf1
+
+fin_rf2_prob2 <- final_rf1 %>%
+  fit(winf ~ bowldelt + batdelt, data = train _dat_prob)
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+batdelt <- seq(-20, 28, 1)
+
+
+test_sum = tibble(batdelt) %>%
+                        mutate(bowldelt = 0) 
+
+
+pred_test = predict(fin_rf2_prob2, test_sum, type = "prob")
+
+
+test_sum2 = test_sum %>% bind_cols(pred_test)
+
+
+
+ggplot(test_sum2, aes(x = batdelt, y = .pred_Yes)) + geom_point()
+
+
+
+
+
+```
+
+
+```{r}
+
+
+
+
+boundary_zoom = boundary %>% filter(batdelt > -0.01) %>%
+                                filter(batdelt < 0.01)
+
+
+
+
+
+
+ggplot(boundary_zoom, aes(x = batdelt, y = bowldelt, col = .pred_Yes)) + geom_point()
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+
+
+
+
+
+
+
+
+
+
+````
 
 ```{r}
 
@@ -2042,7 +2543,7 @@ austra = tibble(player, pos) %>%
 
 ```{r}
 
-t20blast_stats = play_stats %>% 
+t20blast_stats = play_stats2 %>% 
                          filter(comp2 == "England Blast")
 
 
@@ -2069,11 +2570,11 @@ player = c("T Banton", "WCF Smeed", "T Kohler-Cadmore", "TB Abell", "TA Lammonby
    
    
    match4_bat = match4  %>% group_by(team) %>%
-                              mutate(bat_rnk = rank(desc(wpa10))) %>%
+                              mutate(bat_rnk = rank(desc(tot_bat_wp))) %>%
                                filter(bat_rnk < 7) %>%
                                   ungroup() %>%
                                     group_by(team) %>%
-                                      summarise(batrat = mean(wpa10))
+                                      summarise(batrat = sum(tot_bat_wp) * 100)
 
    match4_bat2 = match4_bat %>% rename(op_rat = batrat, opposition = team)
    
@@ -2107,12 +2608,171 @@ match4_sum = match4_bat3 %>%
 
 
 
-pred1 <- predict(fin_rf2, new_data = match4_sum)
+pred1 <- predict(fin_rf2_prob2, new_data = match4_sum, type = "prob")
 
-match4_sum_rat = match4_sum %>%bind_cols(pred1)
+match4_sum_rat = match4_sum %>% bind_cols(pred1)
 
 
 ```
+
+```{r}
+
+
+
+
+
+
+
+
+
+t20blast_stats = play_stats2 %>% 
+                         filter(comp2 == "England Blast")
+
+
+  player = c("SG Budinger", "NR Welch", "AM Lilley", "CN Ackermann", "PWA Mulder","RK Patel", "Rehan Ahmed", "HJ Swindells", "CF Parkinson", "Naseem Shah", "WS Davis")
+
+
+  foxes = tibble(player) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                                mutate(team = "foxes")
+
+
+  
+player = c("PR Stirling", "GJ Maxwell", "AL Davies", "SR Hain", "DR Mousley", "CG Benjamin", "CR Woakes", "HJH Brookes", "DR Briggs", "JB Lintott", "CN Miles")
+
+
+   birming = tibble(player) %>%
+                              left_join(t20blast_stats, by = "player") %>%
+                                mutate(team = "bears")
+   
+   
+   match4 = foxes %>% 
+                          bind_rows(birming)
+   
+   
+   
+   match4_bat = match4  %>% group_by(team) %>%
+                              mutate(bat_rnk = rank(desc(tot_bat_wp))) %>%
+                               filter(bat_rnk < 7) %>%
+                                  ungroup() %>%
+                                    group_by(team) %>%
+                                      summarise(batrat = sum(tot_bat_wp) * 100)
+
+   match4_bat2 = match4_bat %>% rename(op_rat = batrat, opposition = team)
+   
+   
+   match4_bat3 = match4_bat %>% mutate(opposition = if_else(team == "foxes", "bears", "foxes")) %>%
+                    left_join(match4_bat2, by = "opposition") %>%
+                                mutate(batdelt = batrat - op_rat)
+
+   match4_bowl = match4  %>% group_by(team) %>%
+                              filter(bb > 40) %>%
+                              mutate(bowl_rnk = rank(desc(wpa6))) %>%
+                               filter(bowl_rnk < 6) %>%
+                                  ungroup() %>%
+                                    group_by(team) %>%
+                                      summarise(bowlrat = mean(wpa10))
+
+
+
+   match4_bowl2 = match4_bowl %>% rename(op_rat = bowlrat, opposition = team)
+   
+   
+   match4_bowl3 = match4_bowl %>% 
+     mutate(opposition = if_else(team == "foxes", "bears", "foxes")) %>%
+                    left_join(match4_bowl2, by = "opposition") %>%
+                                mutate(bowldelt = bowlrat -op_rat)
+
+
+match4_sum = match4_bat3 %>% 
+                            left_join(match4_bowl3, by = "team") %>%
+                                select(team, batdelt, bowldelt)
+
+
+
+pred1 <- predict(fin_rf2_prob2, new_data = match4_sum, type = "prob")
+
+match4_sum_rat = match4_sum %>% bind_cols(pred1)
+
+```
+
+
+
+```{r}
+
+# Combine common operations into functions
+# This function creates a tibble for the players and joins with t20blast_stats
+create_team_tibble <- function(player, team_name) {
+  tibble(player) %>%
+    left_join(t20blast_stats, by = "player") %>%
+    mutate(team = team_name)
+}
+
+# This function calculates ratings for batting and bowling
+calc_rating <- function(team_df, metric, rank_limit, min_metric_limit = NULL) {
+  team_df %>%
+    group_by(team) %>%
+    filter(if (!is.null(min_metric_limit)) bb > min_metric_limit else TRUE) %>%
+    mutate(rank = rank(desc(metric))) %>%
+    filter(rank < rank_limit) %>%
+    ungroup() %>%
+    group_by(team) %>%
+    summarise(rating = mean(metric))
+}
+
+# Creating team tibbles
+hawks = create_team_tibble(c("JM Vince", "BR McDermott", "TJ Prest", "RA Whiteley", 
+                            "TE Albert","LA Dawson", "NT Ellis", "CP Wood", 
+                            "MS Crane", "SW Currie", "JJ Weatherley"), "hawks")
+somerset = create_team_tibble(c("T Banton", "WCF Smeed", "T Kohler-Cadmore", 
+                                "TB Abell", "TA Lammonby", "L Gregory", "BGF Green", 
+                                "RE van der Merwe", "C Overton", "MJ Henry", "PM Siddle"), "somerset")
+
+# Combine into a match
+match4 = bind_rows(hawks, somerset)
+
+# Calculate ratings for batting and bowling
+match4_bat = calc_rating(match4, wpa10, 7)
+match4_bowl = calc_rating(match4, wpa6, 6, 40)
+
+# Add the opposition rating
+match4_bat = match4_bat %>% 
+  mutate(opposition = if_else(team == "hawks", "somerset", "hawks")) %>%
+  left_join(match4_bat %>% rename(op_rat = rating, opposition = team), by = "opposition") %>%
+  mutate(batdelt = rating - op_rat)
+
+match4_bowl = match4_bowl %>% 
+  mutate(opposition = if_else(team == "hawks", "somerset", "hawks")) %>%
+  left_join(match4_bowl %>% rename(op_rat = rating, opposition = team), by = "opposition") %>%
+  mutate(bowldelt = rating - op_rat)
+
+# Summarise match4 and predict
+match4_sum = left_join(match4_bat, match4_bowl, by = "team") %>%
+  select(team, batdelt, bowldelt)
+
+pred1 <- predict(fin_rf2, new_data = match4_sum)
+
+# Combine the prediction with the summary data
+match4_sum_rat = bind_cols(match4_sum, pred1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
 
 
 ```{r}
@@ -2309,6 +2969,17 @@ ggplot(x, aes(x = value)) +
 ```
 
 
+```{r}
+
+
+test = model_dat_prob %>% filter(batdelt > 0.007) %>%
+                                filter(batdelt < 0.009)
+
+
+
+
+
+```
 
 
 ```{r}
@@ -2830,7 +3501,7 @@ tune_res
 
 tune_res %>%
   collect_metrics() %>%
-  filter(.metric == "rmse") %>%
+  filter(.metric == "rsq") %>%
   select(mean, min_n, mtry) %>%
   pivot_longer(min_n:mtry,
     values_to = "value",
