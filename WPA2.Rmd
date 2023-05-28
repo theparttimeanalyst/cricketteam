@@ -3019,57 +3019,111 @@ colnames(match_play4)[7] = "OPbowl_5"
 
 
 match_play5 <- match_play2 %>%
-  left_join(match_play4, by = c("file", "team2")) 
+  left_join(match_play4, by = c("file", "team2"))  %>%
+    select(-team.y) %>%
+      rename(team = team.x)
 
 
 
 match_bat2 <- match_play %>%
   left_join(info2, by = "file") %>%
-  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
   left_join(play_stats2, by = c("player", "comp2")) %>%
   group_by(team, file) %>%
   mutate(batrank = rank(desc(tot_bat_wp))) %>%
-  filter(batrank < 7) %>%
+  select(team, file, tot_bat_wp, batrank) %>%
   ungroup() %>%
-  group_by(team, file) %>%
-  summarise(bat_q = sum(tot_bat_wp) * 100) %>%
-  ungroup() %>%
+  pivot_wider(names_from = batrank, values_from = tot_bat_wp) %>%
+   ungroup() %>%
   group_by(file) %>%
   mutate(team2 = 1:n())
+
+
+colnames(match_bat2)[3] = "bat_2"
+colnames(match_bat2)[4] = "bat_1"
+colnames(match_bat2)[5] = "bat_4"
+colnames(match_bat2)[6] = "bat_3"
+colnames(match_bat2)[7] = "bat_10"
+colnames(match_bat2)[8] = "bat_8"
+colnames(match_bat2)[9] = "bat_11"
+colnames(match_bat2)[10] = "bat_5"
+colnames(match_bat2)[11] = "bat_6"
+colnames(match_bat2)[12] = "bat_9"
+colnames(match_bat2)[13] = "bat_7"
+colnames(match_bat2)[14] = "bat_12"
 
 
 
 
 match_bat4 <- match_play %>%
   left_join(info2, by = "file") %>%
-  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
   left_join(play_stats2, by = c("player", "comp2")) %>%
   group_by(team, file) %>%
   mutate(batrank = rank(desc(tot_bat_wp))) %>%
-  filter(batrank < 7) %>%
+  select(team, file, tot_bat_wp, batrank) %>%
   ungroup() %>%
-  group_by(team, file) %>%
-  summarise(bat_q = mean(tot_bat_wp) * 100) %>%
-  ungroup() %>%
+  pivot_wider(names_from = batrank, values_from = tot_bat_wp) %>%
+   ungroup() %>%
   group_by(file) %>%
   mutate(team2 = n():1)
 
 
-
-colnames(match_bat4)[1] <- "Opp_t"
-colnames(match_bat4)[3] <- "opp_b"
-
+colnames(match_bat4)[3] = "opbat_2"
+colnames(match_bat4)[4] = "opbat_1"
+colnames(match_bat4)[5] = "opbat_4"
+colnames(match_bat4)[6] = "opbat_3"
+colnames(match_bat4)[7] = "opbat_10"
+colnames(match_bat4)[8] = "opbat_8"
+colnames(match_bat4)[9] = "opbat_11"
+colnames(match_bat4)[10] = "opbat_5"
+colnames(match_bat4)[11] = "opbat_6"
+colnames(match_bat4)[12] = "opbat_9"
+colnames(match_bat4)[13] = "opbat_7"
+colnames(match_bat4)[14] = "opbat_12"
 
 
 match_bat5 <- match_bat2 %>%
   left_join(match_bat4, by = c("file", "team2")) %>%
-  mutate(batdelt = if_else(bat_q > 0, bat_q - opp_b, bat_q - opp_b))
+    select(-team.y)  %>%
+      rename(team = team.x)
 
 
 
 
 
 
+
+
+
+
+
+team_scor_ov3 <- team_scor_ov2 %>%
+  select(team, file, delta) %>%
+  left_join(info2, by = "file") %>%
+  left_join(match_play5, by = c("file", "team")) %>%
+  left_join(match_bat5, by = c("file", "team")) %>%
+  select(-comp, -gen, -Outmeas, -Outval, -winning_team, -td, -tw, -ground, -n, -comp_t, -team2.x, -team2.y, -opbat_12, -bat_12, -`World Cup`)
+
+
+
+
+model_dat <- team_scor_ov3 %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(year = as.numeric(as.character(yy))) %>%
+  filter(year < 2023) 
+
+
+
+
+
+
+model_dat_v4 <- model_dat %>% mutate(win = if_else(delta < 0, "No", "Yes"))
 
 
 
