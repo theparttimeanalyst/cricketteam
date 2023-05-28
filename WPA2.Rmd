@@ -3033,6 +3033,7 @@ match_bat2 <- match_play %>%
   left_join(play_stats2, by = c("player", "comp2")) %>%
   group_by(team, file) %>%
   mutate(batrank = rank(desc(tot_bat_wp))) %>%
+  filter(batrank < 8) %>%
   select(team, file, tot_bat_wp, batrank) %>%
   ungroup() %>%
   pivot_wider(names_from = batrank, values_from = tot_bat_wp) %>%
@@ -3045,14 +3046,10 @@ colnames(match_bat2)[3] = "bat_2"
 colnames(match_bat2)[4] = "bat_1"
 colnames(match_bat2)[5] = "bat_4"
 colnames(match_bat2)[6] = "bat_3"
-colnames(match_bat2)[7] = "bat_10"
-colnames(match_bat2)[8] = "bat_8"
-colnames(match_bat2)[9] = "bat_11"
-colnames(match_bat2)[10] = "bat_5"
-colnames(match_bat2)[11] = "bat_6"
-colnames(match_bat2)[12] = "bat_9"
-colnames(match_bat2)[13] = "bat_7"
-colnames(match_bat2)[14] = "bat_12"
+colnames(match_bat2)[7] = "bat_5"
+colnames(match_bat2)[8] = "bat_6"
+colnames(match_bat2)[9] = "bat_7"
+
 
 
 
@@ -3065,6 +3062,7 @@ match_bat4 <- match_play %>%
   left_join(play_stats2, by = c("player", "comp2")) %>%
   group_by(team, file) %>%
   mutate(batrank = rank(desc(tot_bat_wp))) %>%
+  filter(batrank < 8) %>%
   select(team, file, tot_bat_wp, batrank) %>%
   ungroup() %>%
   pivot_wider(names_from = batrank, values_from = tot_bat_wp) %>%
@@ -3077,20 +3075,16 @@ colnames(match_bat4)[3] = "opbat_2"
 colnames(match_bat4)[4] = "opbat_1"
 colnames(match_bat4)[5] = "opbat_4"
 colnames(match_bat4)[6] = "opbat_3"
-colnames(match_bat4)[7] = "opbat_10"
-colnames(match_bat4)[8] = "opbat_8"
-colnames(match_bat4)[9] = "opbat_11"
-colnames(match_bat4)[10] = "opbat_5"
-colnames(match_bat4)[11] = "opbat_6"
-colnames(match_bat4)[12] = "opbat_9"
-colnames(match_bat4)[13] = "opbat_7"
-colnames(match_bat4)[14] = "opbat_12"
+colnames(match_bat4)[7] = "opbat_5"
+colnames(match_bat4)[8] = "opbat_6"
+colnames(match_bat4)[9] = "opbat_7"
 
 
 match_bat5 <- match_bat2 %>%
   left_join(match_bat4, by = c("file", "team2")) %>%
     select(-team.y)  %>%
-      rename(team = team.x)
+      rename(team = team.x) %>%
+        filter(!is.na(bat_7))
 
 
 
@@ -3107,7 +3101,7 @@ team_scor_ov3 <- team_scor_ov2 %>%
   left_join(info2, by = "file") %>%
   left_join(match_play5, by = c("file", "team")) %>%
   left_join(match_bat5, by = c("file", "team")) %>%
-  select(-comp, -gen, -Outmeas, -Outval, -winning_team, -td, -tw, -ground, -n, -comp_t, -team2.x, -team2.y, -opbat_12, -bat_12, -`World Cup`)
+  select(-comp, -gen, -Outmeas, -Outval, -winning_team, -td, -tw, -ground, -n, -comp_t, -team2.x, -team2.y, -`World Cup`)
 
 
 
@@ -3123,7 +3117,10 @@ model_dat <- team_scor_ov3 %>%
 
 
 
-model_dat_v4 <- model_dat %>% mutate(win = if_else(delta < 0, "No", "Yes"))
+model_dat_v4 <- model_dat %>% mutate(win = if_else(delta < 0, "No", "Yes")) %>%
+                                    filter(!is.na(win)) %>%
+                                      filter(!is.na(bowl_5)) %>%
+                                        filter(!is.na(OPbowl_5))
 
 
 
@@ -3134,6 +3131,23 @@ model_dat_v4 <- model_dat %>% mutate(win = if_else(delta < 0, "No", "Yes"))
 
 
 ````
+
+
+```{r}
+
+
+na_test = model_dat_v4 %>% ungroup() %>%
+              summarise(across(everything(), ~ sum(is.na(.))))
+
+
+
+
+
+
+
+
+```
+
 
 
 ```{r}
