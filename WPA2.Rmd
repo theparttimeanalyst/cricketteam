@@ -2954,7 +2954,7 @@ playdat_bowl <- fin_dat %>%
   ungroup() %>%
   group_by(comp2, bowl) %>%
   summarise(tot_balls = sum(n), tot_wpa = sum(totwpa), match = n()) %>%
-  mutate(wpa6 = totwpa / (n / 6), bpi = tot_balls/match)
+  mutate(wpa6 = tot_wpa / (tot_balls / 6), bpi = tot_balls/match)
 
 colnames(playdat_bowl)[2] <- "player"
 colnames(playdat_bowl)[3] <- "bb"
@@ -2965,41 +2965,61 @@ play_stats2 <- playdat_bat2 %>% left_join(playdat_bowl, by = c("player", "comp2"
 
 match_play2 <- match_play %>%
   left_join(info2, by = "file") %>%
-  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
   left_join(play_stats2, by = c("player", "comp2")) %>%
   group_by(team, file) %>%
-  mutate(bowlrank = rank(desc(bb))) %>%
+  mutate(bowlrank = rank(desc(bpi))) %>%
   filter(bowlrank < 6) %>%
-  select(team, file, wpa6, bowlrank) %>%
-  pivot_wider(names_from = bowlrank, values_from = wpa6)
+  mutate(bowlrank2 = rank(desc(wpa6))) %>%
+  filter(bowlrank2 < 6) %>%
+  select(team, file, wpa6, bowlrank2) %>%
+  pivot_wider(names_from = bowlrank2, values_from = wpa6) %>%
+  ungroup() %>%
+  group_by(file) %>%
+  mutate(team2 = 1:n())
+
+
+colnames(match_play2)[3] = "bowl_4"
+colnames(match_play2)[4] = "bowl_3"
+colnames(match_play2)[5] = "bowl_1"
+colnames(match_play2)[6] = "bowl_2"
+colnames(match_play2)[7] = "bowl_5"
 
 
 
 
 match_play4 <- match_play %>%
   left_join(info2, by = "file") %>%
-  mutate(comp2 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
   left_join(play_stats2, by = c("player", "comp2")) %>%
   group_by(team, file) %>%
-  mutate(bowlrank = rank(desc(bb))) %>%
+  mutate(bowlrank = rank(desc(bpi))) %>%
   filter(bowlrank < 6) %>%
-  ungroup() %>%
-  group_by(team, file) %>%
-  summarise(bowl_q = mean(wpa6) * 100) %>%
+  mutate(bowlrank2 = rank(desc(wpa6))) %>%
+  filter(bowlrank2 < 6) %>%
+  select(team, file, wpa6, bowlrank2) %>%
+  pivot_wider(names_from = bowlrank2, values_from = wpa6) %>%
   ungroup() %>%
   group_by(file) %>%
   mutate(team2 = n():1)
 
 
-colnames(match_play4)[1] <- "Opp_t"
-colnames(match_play4)[3] <- "opp_b"
+colnames(match_play4)[3] = "OPbowl_4"
+colnames(match_play4)[4] = "OPbowl_3"
+colnames(match_play4)[5] = "OPbowl_1"
+colnames(match_play4)[6] = "OPbowl_2"
+colnames(match_play4)[7] = "OPbowl_5"
+
+
 
 
 
 match_play5 <- match_play2 %>%
-  left_join(match_play4, by = c("file", "team2")) %>%
-  mutate(bowldelt = if_else(bowl_q > 0, bowl_q - opp_b, bowl_q - opp_b))
-
+  left_join(match_play4, by = c("file", "team2")) 
 
 
 
