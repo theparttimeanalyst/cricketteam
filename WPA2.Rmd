@@ -3149,6 +3149,202 @@ na_test = model_dat_v4 %>% ungroup() %>%
 ```
 
 
+```{r}
+
+
+model_dat_prob = model_dat_v4 %>% ungroup() %>%
+                                  mutate(winf = as.factor(as.character(win))) %>%
+                                select(-team, -file, -delta, -yy, -win)
+
+
+
+
+
+split <- initial_split(model_dat_prob, prop = 0.80, strata = winf)
+
+train_dat_prob <- training(split)
+
+testing_dat_prob <- testing(split)
+
+
+
+crick_rec_prob <- recipe(winf ~ ., data = train_dat_prob)
+
+
+tune_spec_prob <- rand_forest(
+  mtry = tune(),
+  trees = 1000,
+  min_n = tune(),
+) %>%
+  set_mode("classification") %>%
+  set_engine("ranger", keep.inbag=TRUE)
+
+
+tune_wf <- workflow() %>%
+  add_recipe(crick_rec_prob) %>%
+  add_model(tune_spec_prob)
+
+
+set.seed(455545)
+cick_folds_prob <- vfold_cv(train_dat_prob)
+
+
+
+doParallel::registerDoParallel()
+
+set.seed(44355)
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = cick_folds_prob,
+  grid = 20
+)
+
+tune_res
+
+
+tune_res %>%
+  collect_metrics() %>%
+            filter(.metric == "accuracy") %>%
+                 select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") 
+
+
+
+
+
+
+
+
+
+
+
+
+````
+
+
+```{r}
+
+
+
+# Define the recipe
+rec <- recipe(winf ~ ., data = train_dat_prob) %>%
+  step_normalize(all_predictors())
+
+# Model Specification with tunable parameters
+boost_spec <- boost_tree(
+  mode = "classification", 
+  trees = 1000, 
+  tree_depth = 15, 
+  min_n = 2, 
+  learn_rate = tune(), 
+  loss_reduction = tune()
+) %>%
+  set_engine("lightgbm") %>%
+  set_mode("classification")
+
+# Define the parameter grid
+param_grid <- parameters(boost_spec) %>%
+  grid_regular(levels = 20)
+
+# Workflow
+workflow <- workflow() %>%
+  add_model(boost_spec) %>%
+  add_recipe(rec)
+
+
+
+doParallel::registerDoParallel()
+
+# Model Tuning
+set.seed(123)
+tune_res <- tune_grid(
+  workflow,
+  resamples = bootstraps(train_dat_prob, times = 1),
+  grid = param_grid,
+  metrics = metric_set(roc_auc, accuracy)
+)
+
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+tune_res %>%
+  collect_metrics() %>%
+            filter(.metric == "accuracy") %>%
+                 select(mean, learn_rate, loss_reduction) %>%
+  pivot_longer(learn_rate:loss_reduction,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") 
+
+
+
+test = 
+tune_res %>%
+  collect_metrics() %>%
+            filter(.metric == "accuracy") %>%
+                 select(mean, learn_rate, loss_reduction) %>%
+  pivot_longer(learn_rate:loss_reduction,
+    values_to = "value",
+    names_to = "parameter"
+  ) 
+
+
+
+
+```
+```{r}
+
+best = select_best(tune_res, "accuracy")
+
+
+
+final_lgbmv4 <- finalize_model(
+  boost_spec,
+  best
+)
+
+
+
+fin_fitv4<- final_lgbmv4 %>%
+  fit(winf ~ ., data = train_dat_prob)
+
+
+
+
+# Model Evaluation
+final_preds <- predict(fin_fitv4, testing_dat_prob) %>%
+  bind_cols(testing_dat_prob)
+
+final_metrics <- final_preds %>%
+  metrics(truth = winf, estimate = .pred_class)
+
+print(final_metrics)
+
+
+```
+
+
 
 ```{r}
 
