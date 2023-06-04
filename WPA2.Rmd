@@ -5380,6 +5380,1026 @@ match_gs = match %>% bind_cols(match_pred)
 
 ```{r}
 
+
+
+  player1 = c("MM Ali", "AL Davies", "GJ Maxwell", "SR Hain", "CG Benjamin","DR Mousley", "EG Barnard", "DR Briggs", "HJH Brookes", "JB Lintott", "CN Miles")
+
+
+
+  play5 = c("JM Clarke", "AD Hales", "C Munro", "M Montgomery", "TJ Moores","LW James", "SJ Mullaney", "SR Patel", "Shaheen Shah Afridi", "M Carter", "C McKerr")
+
+
+
+
+
+
+
+
+ team2_bowl = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team2_bowlop = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team2_bat = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team2_batop = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  team1_bowl = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team1_bowlop = tibble(player1) %>%
+                            
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team1_bat = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team1_batop = tibble(player1) %>%
+                             rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  
+team1  = team1_bowl %>% bind_cols(team1_bat) %>%
+                            bind_cols(team2_batop) %>%
+                                bind_cols(team2_bowlop)  %>%
+                                  mutate(team = "birm")
+
+
+team2 = team2_bowl %>% bind_cols(team2_bat) %>%
+                                    bind_cols(team1_batop) %>%
+                                      bind_cols(team1_bowlop) %>%
+                                        mutate(team = "notts")
+
+
+
+match = team1 %>% bind_rows(team2)
+
+
+
+match_pred = predict(fin_fitv4, match, type = "prob")
+
+
+match_BN = match %>% bind_cols(match_pred)
+
+
+
+
+
+
+ team2_bowl = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(player, wpa6, bowlr) %>%
+                                        
+
+
+
+
+ team2_bowl = tibble(player1) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(player, wpa6, bowlr)
+
+ 
+ 
+ 
+
+
+
+```
+
+
+
+```{r}
+
+
+
+  player1 = c("BR McDermott", "JM Vince", "AHT Donald", "JJ Weatherley", "RA Whiteley","JK Fuller", "TE Albert", "LA Dawson", "NT Ellis", "MS Crane", "CP Wood")
+
+
+
+  play5 = c("TGR Clark", "RS Bopara", "TP Alsop", "Shadab Khan", "MGK Burgess","JM Coles", "GHS Garton", "FJ Hudson-Prentice", "OJ Carter", "TS Mills", "HT Crocombe")
+
+
+
+
+
+
+
+
+ team2_bowl = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team2_bowlop = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team2_bat = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team2_batop = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  team1_bowl = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team1_bowlop = tibble(player1) %>%
+                            
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team1_bat = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team1_batop = tibble(player1) %>%
+                             rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  
+team1  = team1_bowl %>% bind_cols(team1_bat) %>%
+                            bind_cols(team2_batop) %>%
+                                bind_cols(team2_bowlop)  %>%
+                                  mutate(team = "hamp")
+
+
+team2 = team2_bowl %>% bind_cols(team2_bat) %>%
+                                    bind_cols(team1_batop) %>%
+                                      bind_cols(team1_bowlop) %>%
+                                        mutate(team = "sussex")
+
+
+
+match = team1 %>% bind_rows(team2)
+
+
+
+match_pred = predict(fin_fitv4, match, type = "prob")
+
+
+match_hs = match %>% bind_cols(match_pred)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+```{r}
+
+
+
+  player1 = c("A Lyth", "DJ Malan", "avplay_BA", "ML Revis", "Shan Masood","JA Thompson", "D Wiese", "BWM Mike", "JA Tattersall", "DM Bess", "JA Chohan")
+
+
+
+  play5 = c("LM Reece", "Haider Ali", "WL Madsen", "JL du Plooy", "TA Wood","MH McKiernan", "BD Guest", "ZJ Chappell", "MRJ Watt", "GLS Scrimshaw", "avplay_BW")
+
+
+
+
+
+
+
+
+ team2_bowl = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team2_bowlop = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team2_bat = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team2_batop = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  team1_bowl = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team1_bowlop = tibble(player1) %>%
+                            
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team1_bat = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team1_batop = tibble(player1) %>%
+                             rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  
+team1  = team1_bowl %>% bind_cols(team1_bat) %>%
+                            bind_cols(team2_batop) %>%
+                                bind_cols(team2_bowlop)  %>%
+                                  mutate(team = "yorks")
+
+
+team2 = team2_bowl %>% bind_cols(team2_bat) %>%
+                                    bind_cols(team1_batop) %>%
+                                      bind_cols(team1_bowlop) %>%
+                                        mutate(team = "derb")
+
+
+
+match = team1 %>% bind_rows(team2)
+
+
+
+match_pred = predict(fin_fitv4, match, type = "prob")
+
+
+match_yd = match %>% bind_cols(match_pred)
+
+
+
+
+
+
+
+```
+
+
+```{r}
+
+
+
+  player1 = c("G Roelofsen", "CDJ Dent", "Miles Hammond", "OJ Price", "JMR Taylor","BG Charlesworth", "James Bracey", "DJ Lamb", "M de Lange", "TMJ Smith", "DA Payne")
+
+
+
+  play5 = c("SS Eskinazi", "JB Cracknell", "MDE Holden", "PJ Malan", "LBK Hollman","RF Higgins", "JLB Davies", "MK Andersson", "N Fernandes", "TG Helm", "BC Cullen")
+
+
+
+
+
+
+
+
+ team2_bowl = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team2_bowlop = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team2_bat = tibble(play5) %>%
+                              rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team2_batop = tibble(play5) %>%
+                                rename(player = play5) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  team1_bowl = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+  
+  
+
+  team1_bowlop = tibble(player1) %>%
+                            
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+
+  
+  
+
+
+  team1_bat = tibble(player1) %>%
+                            rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+  team1_batop = tibble(player1) %>%
+                             rename(player = player1) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+  
+team1  = team1_bowl %>% bind_cols(team1_bat) %>%
+                            bind_cols(team2_batop) %>%
+                                bind_cols(team2_bowlop)  %>%
+                                  mutate(team = "glouces")
+
+
+team2 = team2_bowl %>% bind_cols(team2_bat) %>%
+                                    bind_cols(team1_batop) %>%
+                                      bind_cols(team1_bowlop) %>%
+                                        mutate(team = "middle")
+
+
+
+match = team1 %>% bind_rows(team2)
+
+
+
+match_pred = predict(fin_fitv4, match, type = "prob")
+
+
+match_yd = match %>% bind_cols(match_pred)
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+### teams
+`````{r}
+
+
+york = c("A Lyth", "DJ Malan", "avplay_BA", "ML Revis", "Shan Masood","JA Thompson", "D Wiese", "BWM Mike", "JA Tattersall", "DM Bess", "JA Chohan")
+derby =  c("LM Reece", "Haider Ali", "WL Madsen", "JL du Plooy", "TA Wood","MH McKiernan", "BD Guest", "ZJ Chappell", "MRJ Watt", "GLS Scrimshaw", "avplay_BW")
+glouces = c("G Roelofsen", "CDJ Dent", "Miles Hammond", "OJ Price", "JMR Taylor","BG Charlesworth", "James Bracey", "DJ Lamb", "M de Lange", "TMJ Smith", "DA Payne")
+Middlesex = c("SS Eskinazi", "JB Cracknell", "MDE Holden", "PJ Malan", "LBK Hollman","RF Higgins", "JLB Davies", "MK Andersson", "N Fernandes", "TG Helm", "BC Cullen")
+durham = c("G Clark", "AZ Lees", "MA Jones", "OG Robinson", "AJ Turner","avplay_BA", "L Doneathy", "L Trevaskis", "BA Raine", "NA Sowter", "WD Parnell")
+lancs= c("PD Salt", "JC Buttler", "SJ Croft", "LWP Wells", "DJ Mitchell","LS Livingstone", "C de Grandhomme", "TW Hartley", "L Wood", "TE Bailey", "MW Parkinson")
+foxes = c("NR Welch", "LJ Hill", "RK Patel", "CN Ackermann", "Naseem Shah","LPJ Kimber", "Rehan Ahmed", "HJ Swindells", "CF Parkinson", "WS Davis", "Naveen-ul-Haq")
+sussex = c("TGR Clark", "RS Bopara", "TP Alsop", "Shadab Khan", "MGK Burgess","JM Coles", "GHS Garton", "FJ Hudson-Prentice", "OJ Carter", "TS Mills", "HT Crocombe")
+glamor = c("EJ Byrom", "SA Northeast", "KS Carlson", "CA Ingram", "CB Cooke","HW Podmore", "WT Root", "DA Douthwaite", "P Sisodiya", "P Hatzoglou", "JP McIlroy")
+somers = c("T Banton", "WCF Smeed", "T Kohler-Cadmore", "TB Abell", "TA Lammonby","L Gregory", "BGF Green", "RE van der Merwe", "JH Davey", "MJ Henry", "PM Siddle")
+essex = c("AM Rossington", "FIN Khushi", "DW Lawrence", "PI Walter", "RJ Das","DR Sams", "T Westley", "SR Harmer", "MJJ Critchley", "S Snater", "SJ Cook")
+kent = c("TS Muyeye", "DJ Bell-Drummond", "JL Denly", "SW Billings", "JM Cox","JA Leaning", "GF Linde", "G Stewart", "JDM Evison", "Qais Ahmad", "MG Hogan")
+surrey = c("WG Jacks", "LJ Evans", "SM Curran", "Tk Curran", "SP Narine","JL Smith", "SA Abbott", "J Overton", "CJ Jordan", "AAP Atkinson", "TE Lawes")
+northam = c("R Vasconcelos", "CA Lynn", "JJ Cobb", "DJ Willey", "SA Zaib","LD McManus", "TAI Taylor", "GG White", "AJ Tye", "JJG Sales", "FJ Heldreich")
+worces = c("BL D'Oliveira", "MG Bracewell", "JA Haynes", "MJ Santner", "AJ Hose","Kashif Ali", "EJ Pollock", "OB Cox", "AW Finch", "DY Pennington", "PR Brown")
+notts = c("JM Clarke", "AD Hales", "C Munro", "M Montgomery", "TJ Moores","LW James", "SJ Mullaney", "SR Patel", "Shaheen Shah Afridi", "M Carter", "C McKerr")
+
+
+
+
+
+
+
+
+
+
+```
+
+
+#### funct
+
+
+```{r}
+
+
+team_bat = function(x,y,z){
+  
+  
+
+  team2_bat = tibble(x) %>%
+                              rename(player = x) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+  
+  
+
+ team2_bowl = tibble(x) %>%
+                                rename(player = x) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+ 
+ 
+ 
+  team2_batop = tibble(y) %>%
+                                rename(player = y) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+  team2_bowlop = tibble(y) %>%
+                              rename(player = y) %>%
+                            left_join(t20blast_stats, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+  
+ 
+ 
+ team_sum = team2_bat %>% bind_cols(team2_bowl) %>%
+                                  bind_cols(team2_bowlop) %>%
+                                        bind_cols(team2_batop) %>%
+                                          mutate(team = z)
+
+ 
+ 
+match_pred = predict(fin_fitv4, team_sum, type = "prob")
+
+
+team_sum2 = team_sum %>% bind_cols(match_pred)  
+
+ 
+ 
+ return(team_sum2)
+ 
+}
+
+
+match_sum = team_bat(york,derby, "yrks")  %>%
+                     bind_rows(team_bat(glouces, Middlesex, "glou")) %>%
+                               bind_rows(team_bat(durham, foxes, "durh")) %>%
+                            bind_rows(team_bat(sussex, glamor, "sus")) %>%
+                              bind_rows(team_bat(somers, essex, "somer")) %>%
+                                  bind_rows(team_bat(kent, surrey, "ken")) %>%
+                                    bind_rows(team_bat(worces, northam, "worc")) %>%
+                                        bind_rows(team_bat(notts, lancs, "nott"))
+
+
+
+
+
+
+
+
+
+```
+
+```{r}
+
 # Combine common operations into functions
 # This function creates a tibble for the players and joins with t20blast_stats
 create_team_tibble <- function(player, team_name) {
@@ -5459,7 +6479,7 @@ match4_sum_rat = match4_sum %>% bind_cols( pred1) %>%
 
 ```{r}
 
-som = rnorm(1000,10.0228,10)
+som = rrtrm(1000,10.0228,10)
 
 som_tib = tibble(som)
 
