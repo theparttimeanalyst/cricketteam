@@ -3672,8 +3672,28 @@ t20blast_statsv2 = t20blast_stats %>% bind_rows(average_bowl) %>%
 ```{r}
 
 
+av_bat2 = average_bat %>% select(wpa10) %>%
+                            rename(av_play = wpa10)
+
+
 batt_u100 = t20blast_stats %>%
-                            filter(bf < 100)
+                            filter(bf < 100) %>%
+                              filter(Position %in% c("Batter", "All Rounder")) %>%
+                                bind_cols(av_bat2) %>%
+                                  mutate(wpapb = av_play/10) %>%
+                                    mutate(balldel = 100 - bf) %>%
+                                      mutate(totextra = balldel * wpapb) %>%
+                                        mutate(wpa_sum_adj = (totwpa + totextra)/10) %>%
+                                            mutate(tot_wpa_adj = wpa_sum_adj * bbi) %>%
+                                              select(player, tot_wpa_adj)
+
+
+
+
+t20blast_statsv3 = t20blast_statsv2 %>% left_join(batt_u100, by = "player") %>%
+                  mutate(act_tot_wpa = if_else(is.na(tot_wpa_adj), tot_bat_wp, tot_wpa_adj)) %>%
+                          select(-tot_bat_wp) %>%
+                                  rename(tot_bat_wp = act_tot_wpa)
 
 
 
