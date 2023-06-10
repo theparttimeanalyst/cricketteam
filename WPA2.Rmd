@@ -3632,12 +3632,17 @@ match4_sum_rat = match4_sum %>% bind_cols(pred1) %>%
 
 ```{r}
 
+library(readxl)
+
+setwd("C:/Users/alext/OneDrive/Documents/data")
+
+players = read_xlsx("players.xlsx")
 
 
 
-
-t20blast_stats = play_stats2 %>% 
-                         filter(comp2 == "England Blast")
+t20blast_stats = play_stats2 %>%  
+                         filter(comp2 == "England Blast") %>%
+                            left_join(players, by = "player")
 
 
 
@@ -3662,6 +3667,26 @@ t20blast_statsv2 = t20blast_stats %>% bind_rows(average_bowl) %>%
 
 ```
 
+
+
+```{r}
+
+
+batt_u100 = t20blast_stats %>%
+                            filter(bf < 100)
+
+
+
+
+
+
+
+
+
+
+
+
+```
 
 ### teams
 `````{r}
