@@ -3708,6 +3708,57 @@ t20blast_statsv3 = t20blast_statsv2 %>% left_join(batt_u100, by = "player") %>%
 
 ```
 
+
+
+```{r}
+
+
+
+av_bowl2 = average_bowl %>% select(wpa6) %>%
+                            rename(av_play = wpa6)
+
+
+bowl_u100 = t20blast_stats %>%
+                            filter(bb < 100) %>%
+                              filter(Position %in% c("Bowler", "All Rounder")) %>%
+                                bind_cols(av_bowl2) %>%
+                                  mutate(wpapb = av_play/6) %>%
+                                    mutate(balldel = 100 - bb) %>%
+                                      mutate(totextra = balldel * wpapb) %>%
+                                         mutate(totact = wpa6/6*bb) %>%
+                                        mutate(wpa_sum_adj = (totact + totextra)/16.667) %>%
+                                              select(player, wpa_sum_adj)
+
+
+
+
+t20blast_statsv4 = t20blast_statsv3 %>% left_join(bowl_u100, by = "player") %>%
+                  mutate(act_tot_wpa = if_else(is.na(wpa_sum_adj), wpa6, wpa_sum_adj)) %>%
+                          select(-wpa6) %>%
+                                  rename(wpa6 = act_tot_wpa)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
 ### teams
 `````{r}
 
@@ -3755,7 +3806,7 @@ team_bat = function(x,y,z){
 
   team2_bat = tibble(x) %>%
                               rename(player = x) %>%
-                            left_join(t20blast_stats, by = "player") %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
                               mutate(batrank = rank(desc(tot_bat_wp)))  %>%
                                   filter(batrank < 8) %>%
                                 
@@ -3775,7 +3826,7 @@ team_bat = function(x,y,z){
 
  team2_bowl = tibble(x) %>%
                                 rename(player = x) %>%
-                            left_join(t20blast_stats, by = "player") %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
                               mutate(bowlrank = rank(desc(bpi)))  %>%
                                 filter(bowlrank < 6) %>%
                                   mutate(bowlr = rank(desc(wpa6))) %>%
@@ -3792,7 +3843,7 @@ team_bat = function(x,y,z){
  
   team2_batop = tibble(y) %>%
                                 rename(player = y) %>%
-                            left_join(t20blast_stats, by = "player") %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
                               mutate(batrank = rank(desc(tot_bat_wp)))  %>%
                                   filter(batrank < 8) %>%
                                 
@@ -3810,7 +3861,7 @@ team_bat = function(x,y,z){
 
   team2_bowlop = tibble(y) %>%
                               rename(player = y) %>%
-                            left_join(t20blast_stats, by = "player") %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
                               mutate(bowlrank = rank(desc(bpi)))  %>%
                                 filter(bowlrank < 6) %>%
                                   mutate(bowlr = rank(desc(wpa6))) %>%
