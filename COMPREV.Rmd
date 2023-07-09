@@ -473,3 +473,60 @@ vitality_blast_years <- fin_dat %>%
 
 
 ```
+
+
+
+```{r}
+
+
+
+
+
+best_ball = vitality_blast %>% group_by(bat, file) %>%
+                                    mutate(ibal = 1:n()) %>%
+                                        ungroup() %>%
+                                            group_by(bat, ibal) %>%
+                                                summarise(tot = mean(batdelt, na.rm = T), n = n())
+
+
+
+
+
+play_comp = best_ball %>% filter(bat %in% c("SR Hain", "WCF Smeed", "MS Pepper", "JM Vince")) %>%
+                                    ungroup() %>%
+                                      group_by(bat) %>%
+                                        mutate(cumlat = cumsum(tot))
+
+
+
+ggplot(play_comp, aes(x = ibal, y = cumlat, col = bat)) + geom_line() 
+
+```
+
+
+
+
+```{r}
+
+
+
+best_period = vitality_blast %>%
+                                mutate(gamepoint = if_else(ball2 < 37, "Power Play", 
+                                                           if_else(ball2 > 90, "Death", "Middle"))) %>%
+                                         ungroup() %>%
+                                             group_by(bat, file) %>%
+                                    mutate(ibal = 1:n()) %>%
+                                        ungroup() %>%
+                                              mutate(innstart = if_else(ibal == 1, gamepoint, NA)) %>%
+                                                group_by(bat, file) %>%
+                                                fill(innstart, .direction = "down") %>%
+                                                      ungroup() %>%
+                                                  group_by(bat, gamepoint, innstart) %>%
+                                                          summarise(totbat = sum(batdelt, na.rm = T), n = n()) %>%
+                                                            mutate(wpa10 = totbat/n*10)
+
+
+
+
+
+```
