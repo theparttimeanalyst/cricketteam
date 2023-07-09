@@ -316,3 +316,160 @@ infos <- map_dfr(files, matchinfo)
 
 
 ````
+
+
+
+```{r}
+
+
+date <- infos %>%
+  filter(grepl("dates", name2)) %>%
+  group_by(file) %>%
+  mutate(fil = 1:n()) %>%
+  filter(fil == 1) %>%
+  select(value, file)
+
+colnames(date)[1] <- "Match_dat"
+
+event <- infos %>%
+  filter(name2 == "event") %>%
+  filter(name3 == "name") %>%
+  select(value, file)
+
+colnames(event)[1] <- "comp"
+
+
+
+gender <- infos %>%
+  filter(name2 == "gender") %>%
+  select(value, file)
+
+
+colnames(gender)[1] <- "gen"
+
+
+
+
+outcome_by <- infos %>%
+  filter(name2 == "outcome") %>%
+  filter(name3 == "by") %>%
+  select(name4, value, file)
+
+
+colnames(outcome_by)[1] <- "Outmeas"
+colnames(outcome_by)[2] <- "Outval"
+
+
+outcome_by2 <- infos %>%
+  filter(name2 == "outcome") %>%
+  filter(name3 %in% c("bowl_out", "eliminator", "winner")) %>%
+  select(value, file)
+
+
+colnames(outcome_by2)[1] <- "winning_team"
+
+
+toss_d <- infos %>%
+  filter(name2 == "toss") %>%
+  filter(name3 == "decision") %>%
+  select(value, file)
+
+colnames(toss_d)[1] <- "td"
+
+toss_w <- infos %>%
+  filter(name2 == "toss") %>%
+  filter(name3 == "winner") %>%
+  select(value, file)
+
+
+colnames(toss_w)[1] <- "tw"
+
+
+
+venue <- infos %>%
+  filter(name2 == "venue") %>%
+  select(value, file)
+
+colnames(venue)[1] <- "ground"
+
+colnames(teams)[1] <- "tw"
+
+colnames(teams)[3] <- "comp_t"
+
+
+
+info2 <- date %>%
+  left_join(event, by = "file") %>%
+  left_join(gender, by = "file") %>%
+  left_join(outcome_by, by = "file") %>%
+  left_join(outcome_by2, by = "file") %>%
+  left_join(toss_d, by = "file") %>%
+  left_join(toss_w, by = "file") %>%
+  left_join(venue, by = "file") %>%
+  left_join(teams, by = "tw")
+
+
+
+
+
+
+all_dat <- dataset2 %>% left_join(info2, by = "file")
+
+
+
+dat2 <- all_dat %>%
+  group_by(team, file) %>%
+  mutate(ball2 = row_number()) %>%
+  ungroup() %>%
+  separate(Match_dat, c("yy", "mm", "dd"), sep = "-") %>%
+  select(-mm, -dd) %>%
+  mutate(bat_run = as.numeric(as.character(bat_run)), extras = as.numeric(as.character(extras)), as.numeric(as.character(bat_run)), totrun = as.numeric(as.character(totrun)))
+
+dat2$yy <- as.numeric(as.character(dat2$yy))
+
+
+
+
+
+````
+
+
+
+
+
+
+```{r}
+
+
+
+vitality_blast <- fin_dat %>%
+  filter(comp == "Vitality Blast") %>%
+  filter(yy == 2023)
+
+
+
+vital_bat <- vitality_blast %>%
+  group_by(bat) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
+  mutate(wpa10 = totwpa / n)
+
+
+
+
+
+vitality_blast_years <- fin_dat %>%
+  filter(comp == "Vitality Blast") %>%
+    group_by(bat, yy) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
+  mutate(wpa10 = totwpa / n)
+
+
+
+
+
+
+
+
+```
