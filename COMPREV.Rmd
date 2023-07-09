@@ -27,10 +27,292 @@ library(tidymodels)
 library(bonsai)
 
 library(rjson)
+
+
 ```
 
 
 
+
+
+```{R}
+
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+
+fileread <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+
+
+
+  innr <- df_sep %>%
+    filter(name1 == "innings") %>%
+    mutate(team = if_else(name2 == "team", value, NA_character_)) %>%
+    fill(team, .direction = "down") %>%
+    mutate(over = if_else(name3 == "over", value, NA_character_)) %>%
+    fill(over, .direction = "down") %>%
+    mutate(bat = if_else(name4 == "batter", value, NA_character_)) %>%
+    fill(bat, .direction = "down") %>%
+    mutate(bowl = if_else(name4 == "bowler", value, NA_character_)) %>%
+    fill(bowl, .direction = "down") %>%
+    mutate(ns = if_else(name4 == "non_striker", value, NA_character_)) %>%
+    fill(ns, .direction = "down") %>%
+    mutate(bat_run = if_else(name5 == "batter", value, NA_character_)) %>%
+    fill(bat_run, .direction = "down") %>%
+    mutate(extras = if_else(name5 == "extras", value, NA_character_)) %>%
+    mutate(wick = if_else(name5 == "kind", value, NA_character_)) %>%
+    mutate(filt = if_else(!is.na(extras), extras,
+      if_else(!is.na(wick), wick, NA_character_)
+    )) %>%
+    fill(filt, .direction = "up") %>%
+    fill(extras, .direction = "down") %>%
+    mutate(totrun = if_else(name5 == "total", value, NA_character_)) %>%
+    filter(!is.na(totrun)) %>%
+    select(team, over, bat, bowl, ns, bat_run, extras, totrun, filt) %>%
+    mutate(file = x) %>%
+    group_by(team, over, file) %>%
+    mutate(over2 = as.numeric(as.character(over))) %>%
+    mutate(ovball = 1:n()) %>%
+    mutate(innball = over2 * 6 + ovball) %>%
+    ungroup() %>%
+    mutate(lagte = lag(team)) %>%
+    mutate(inn = if_else(is.na(lagte), "1",
+      if_else(lagte != team, "2", NA_character_)
+    )) %>%
+    fill(inn, .direction = "down") %>%
+    select(-lagte)
+
+
+
+  # d_test <- df %>% separate(name, into = c("n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8"), fill = "right") %>%
+  #                         filter(n1 == "info")  %>%
+  #                        filter(n2 != "players") %>%
+  #                       filter(n2 != "registry") %>%
+  #                      filter(n3 != "group") %>%
+  #                     filter(n2 != "officials") %>%
+  #                    mutate(col2 = if_else(n3 == "winner", n3, n2)) %>%
+  #                   mutate(col3 = if_else(col2 == "outcome", paste(n4, value), value)) %>%
+  #                  mutate(col4 = if_else(col2 == "winner", paste(n2,n3, sep = "_"), col2)) %>%
+  #                 select(col4,col3) %>%
+  #                pivot_wider(names_from = col4, values_from = col3)  %>%
+  #               select(-team)
+
+
+
+  # innr2 <- innr %>% bind_cols(d_test)
+
+  return(innr)
+}
+
+
+
+
+
+files <- list.files()
+
+dataset2 <- map_dfr(files, fileread)
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+```{r}
+
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+matchinfo <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+
+  df_info2 <- df_sep %>%
+    filter(name1 == "info") %>%
+    filter(name2 != "players") %>%
+    #  filter(name2 != "registry") %>%
+    # filter(name2 != "officials") %>%
+    #  filter(value != "D/L") %>%
+    # mutate(col2 = if_else(name2 == "event", name3, name2)) %>%
+    #    filter(col2 != "group") %>%
+    # mutate(col4 = if_else(col2 == "outcome", if_else(name3 == "winner", "outcome_t", "outcome_m"), col2)) %>%
+    #  mutate(col5 = if_else(col4 == "name", "comp", col4)) %>%
+    #   mutate(col6 = if_else(col5 == "toss", if_else(name3 == "decision", "toss_d", "toss_w"), col5)) %>%
+    #   mutate(col7 = if_else(col6 == "outcome_m", paste(name4, value, sep = "-"), value)) %>%
+    #    filter(col6 != "balls_per_over") %>%
+    # select(col6,col7) %>%
+    # pivot_wider(names_from = col6, values_from = col7)  %>%
+    mutate(file = x)
+
+  return(df_info2)
+}
+
+
+
+
+
+
+
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+extr_count <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+  innr_extra <- df_sep %>%
+    filter(name1 == "innings") %>%
+    mutate(team = if_else(name2 == "team", value, NA_character_)) %>%
+    fill(team, .direction = "down") %>%
+    filter(name4 == "extras") %>%
+    filter(name5 %in% c("noballs", "wides")) %>%
+    ungroup() %>%
+    group_by(team) %>%
+    summarise(n = n()) %>%
+    mutate(file = x)
+
+
+
+3
+
+
+  return(innr_extra)
+}
+
+
+files <- list.files()
+
+match_etras <- map_dfr(files, extr_count)
+
+
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+
+play_list <- function(x) {
+  data <- fromJSON(file = x)
+
+
+  df <- enframe(unlist(data))
+
+
+  rgx_split <- "\\."
+  n_cols_max <-
+    df %>%
+    pull(name) %>%
+    str_split(rgx_split) %>%
+    map_dbl(~ length(.)) %>%
+    max()
+
+
+
+  nms_sep <- paste0("name", 1:n_cols_max)
+  df_sep <-
+    df %>%
+    separate(name, into = nms_sep, sep = rgx_split, fill = "right")
+
+
+
+
+
+  df_play <- df_sep %>%
+    filter(name2 == "players") %>%
+    mutate(no = parse_number(name3)) %>%
+    mutate(team = if_else(no < 10, str_sub(name3, 1, nchar(name3) - 1), str_sub(name3, 1, nchar(name3) - 2))) %>%
+    select(team, no, value) %>%
+    mutate(file = x)
+
+
+  colnames(df_play)[3] <- "player"
+
+
+
+
+  return(df_play)
+}
+
+
+files <- list.files()
+
+match_play <- map_dfr(files, play_list)
+
+
+setwd("C:/Users/alext/OneDrive/Documents/data/t20")
+
+
+
+files <- list.files()
+
+infos <- map_dfr(files, matchinfo)
 
 
 ````
