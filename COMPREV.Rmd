@@ -529,4 +529,29 @@ best_period = vitality_blast %>%
 
 
 
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+
+
+
+death_bat = best_period %>%
+                          filter(gamepoint == "Death") %>%
+                              filter(wpa10 > -0.25)
+
+
+
+ggplot(death_bat, aes(x = innstart, y = wpa10, size = n, label = bat)) + geom_jitter()
+
+
+
 ```
