@@ -627,8 +627,18 @@ team2_bowl = blast_play %>%
 
 
 
+teamo = team2_bat %>% select(team) %>%
+                            ungroup() %>%
+                            mutate(teamno = 1:n()) %>%
+                              rename(opteam = team)
 
-team_sum = team2_bat %>% left_join(team2_bowl, by = "team")
+
+team_sum = team2_bat %>% left_join(team2_bowl, by = "team") %>%
+                              mutate(opp_team = 18) %>%
+                                uncount(opp_team) %>%
+                                    group_by(team) %>%
+                                        mutate(teamno = 1:n()) %>%
+                                           left_join(teamo, by = "teamno")
 
 
 
