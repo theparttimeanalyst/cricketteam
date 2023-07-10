@@ -555,3 +555,81 @@ ggplot(death_bat, aes(x = innstart, y = wpa10, size = n, label = bat)) + geom_ji
 
 
 ```
+
+
+
+```{r}
+
+
+blast_play  = match_play %>% left_join(info2, by = "file") %>%
+                                    filter(comp == "Vitality Blast") %>%
+                                        separate(Match_dat, into = c("yy", "mm", "dd"), sep = "-") %>%
+                                          filter(yy == 2023) %>%
+                                              group_by(team, player) %>%
+                                                summarise(n = n()) %>%
+                                      left_join(t20blast_statsv4, by = "player") %>%
+                                            select(team, player, tot_bat_wp, wpa6, n, bpi)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+team2_bat = blast_play %>%
+                              group_by(team) %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                     filter(batrank < 8) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                        
+                                          select(team, coltit, tot_bat_wp) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+team2_bowl = blast_play %>%
+                              group_by(team) %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                        
+                                          select(team, coltit, wpa6) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+team_sum = team2_bat %>% left_join(team2_bowl, by = "team")
+
+
+
+```
