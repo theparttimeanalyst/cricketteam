@@ -633,12 +633,63 @@ teamo = team2_bat %>% select(team) %>%
                               rename(opteam = team)
 
 
+
+
+
+team2_batop = blast_play %>%
+                              group_by(team) %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                     filter(batrank < 8) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                        
+                                          select(team, coltit, tot_bat_wp) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+team2_bowlop = blast_play %>%
+                              group_by(team) %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "opbowl_1",
+                                                              if_else(bowlr == 2, "opbowl_2",
+                                                                if_else(bowlr == 3, "opbowl_3",
+                                                                  if_else(bowlr == 4, "opbowl_4",
+                                                 if_else(bowlr == 5, "opbowl_5", "Rr")))))) %>%
+                        
+                                          select(team, coltit, wpa6) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+team_sumop = team2_batop %>% left_join(team2_bowlop, by = "team") %>%
+                              rename(opteam = team)
+
+
+
+
 team_sum = team2_bat %>% left_join(team2_bowl, by = "team") %>%
                               mutate(opp_team = 18) %>%
                                 uncount(opp_team) %>%
                                     group_by(team) %>%
                                         mutate(teamno = 1:n()) %>%
-                                           left_join(teamo, by = "teamno")
+                                           left_join(teamo, by = "teamno") %>%
+                                              left_join(team_sumop, by = "opteam") %>%
+                                      mutate(fil = if_else(team==opteam, 1,0)) %>%
+                                          filter(fil == 0)
+
+
 
 
 
