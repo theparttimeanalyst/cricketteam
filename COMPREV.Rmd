@@ -568,7 +568,12 @@ blast_play  = match_play %>% left_join(info2, by = "file") %>%
                                               group_by(team, player) %>%
                                                 summarise(n = n()) %>%
                                       left_join(t20blast_statsv4, by = "player") %>%
-                                            select(team, player, tot_bat_wp, wpa6, n, bpi)
+                                            select(team, player, tot_bat_wp, wpa6, n, bpi) %>%
+                                                  ungroup() %>%
+                                                    group_by(team) %>%
+                                                      mutate(rankl  = rank(desc(n))) %>%
+                                                    filter(rankl < 12)
+
 
 
 
@@ -625,14 +630,23 @@ team2_bowl = blast_play %>%
                                           select(team, coltit, wpa6) %>%
                                       pivot_wider(names_from = coltit, values_from = wpa6)
 
+group = c("North", "North", "North", "South", "South", "South", "South", "South", "North", "North", "South", "North", "North", "South", "South", "South", "North", "North")
+
 
 
 teamo = team2_bat %>% select(team) %>%
                             ungroup() %>%
                             mutate(teamno = 1:n()) %>%
-                              rename(opteam = team)
+                              rename(opteam = team) %>%
+                                bind_cols(group) 
 
 
+colnames(teamo)[3] = "group"
+
+
+
+teamo2 = teamo %>% select(opteam, group) %>%
+                          rename(team = opteam, teamgr = group)
 
 
 
@@ -661,11 +675,11 @@ team2_bowlop = blast_play %>%
                                 filter(bowlrank < 6) %>%
                                   mutate(bowlr = rank(desc(wpa6))) %>%
                                     select(bowlr, wpa6) %>%
-                                      mutate(coltit = if_else(bowlr == 1, "opbowl_1",
-                                                              if_else(bowlr == 2, "opbowl_2",
-                                                                if_else(bowlr == 3, "opbowl_3",
-                                                                  if_else(bowlr == 4, "opbowl_4",
-                                                 if_else(bowlr == 5, "opbowl_5", "Rr")))))) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
                         
                                           select(team, coltit, wpa6) %>%
                                       pivot_wider(names_from = coltit, values_from = wpa6)
@@ -687,7 +701,55 @@ team_sum = team2_bat %>% left_join(team2_bowl, by = "team") %>%
                                            left_join(teamo, by = "teamno") %>%
                                               left_join(team_sumop, by = "opteam") %>%
                                       mutate(fil = if_else(team==opteam, 1,0)) %>%
-                                          filter(fil == 0)
+                                          filter(fil == 0) %>%
+                                            left_join(teamo2, by = "team")
+
+
+
+
+
+preds =  predict(fin_fitv4, team_sum, type = "prob")
+
+
+team_sum2 = team_sum %>% bind_cols(preds) %>%
+                              mutate(win = if_else(.pred_Yes > 0.5, 2,0)) %>%
+                                group_by(team) %>%
+                                  summarise(tot = sum(win), mewi = mean(.pred_Yes))
+
+
+
+
+team_sum2_north = team_sum %>% bind_cols(preds) %>%
+                              mutate(win = if_else(.pred_Yes > 0.5, 2,0)) %>%
+                                  filter(group == "North") %>%
+                                    filter(teamgr == "North") %>%
+                                       group_by(team) %>%
+                                  summarise(tot = sum(win), mewi = mean(.pred_Yes))
+
+
+team_sum2_south = team_sum %>% bind_cols(preds) %>%
+                              mutate(win = if_else(.pred_Yes > 0.5, 2,0)) %>%
+                                  filter(group == "South") %>%
+                                   filter(teamgr == "South") %>%
+                                       group_by(team) %>%
+                                  summarise(tot = sum(win), mewi = mean(.pred_Yes))
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+
+
+
+
+
 
 
 
