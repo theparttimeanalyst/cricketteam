@@ -484,6 +484,7 @@ extr_count <- function(x) {
 
 
 
+3
 
 
   return(innr_extra)
@@ -3764,23 +3765,23 @@ t20blast_statsv4 = t20blast_statsv3 %>% left_join(bowl_u100, by = "player") %>%
 
 
 york = c("A Lyth", "DJ Malan", "JH Wharton", "ML Revis", "Shan Masood","JA Thompson", "D Wiese", "BWM Mike", "JA Tattersall", "DM Bess", "JA Chohan")
-derby =  c("LM Reece", "Haider Ali", "WL Madsen", "JL du Plooy", "TA Wood","MH McKiernan", "BD Guest", "ZJ Chappell", "MRJ Watt", "GLS Scrimshaw", "avplay_BW")
-glouces = c("G Roelofsen", "CDJ Dent", "Miles Hammond", "OJ Price", "JMR Taylor","BG Charlesworth", "James Bracey", "DJ Lamb", "M de Lange", "TMJ Smith", "DA Payne")
+derby =  c("LM Reece", "Haider Ali", "WL Madsen", "JL du Plooy", "HRC Came","MH McKiernan", "BD Guest", "ZJ Chappell", "MRJ Watt", "GLS Scrimshaw", "Zaman Akhter")
+glouces = c("avplay_BA", "CDJ Dent", "Miles Hammond", "OJ Price", "JMR Taylor","BG Charlesworth", "James Bracey", "DJ Lamb", "Zafar Gohar", "TMJ Smith", "DA Payne")
 Middlesex = c("SS Eskinazi", "JB Cracknell", "MDE Holden", "PJ Malan", "LBK Hollman","RF Higgins", "JLB Davies", "MK Andersson", "JM De Caires", "TG Helm", "BC Cullen")
-durham = c("G Clark", "AZ Lees", "MA Jones", "OG Robinson", "AJ Turner","BFW de Leede", "avplay_BW", "L Trevaskis", "BA Raine", "NA Sowter", "WD Parnell")
-lancs= c("PD Salt", "JC Buttler", "SJ Croft", "LWP Wells", "DJ Mitchell","LS Livingstone", "C de Grandhomme", "TW Hartley", "L Wood", "JM Blatherwick", "RP Jones")
-foxes = c("NR Welch", "LJ Hill", "RK Patel", "CN Ackermann", "PWA Mulder","LPJ Kimber", "Rehan Ahmed", "HJ Swindells", "CF Parkinson", "TAR Scriven", "MET Salisbury")
-sussex = c("TGR Clark", "RS Bopara", "TP Alsop", "Shadab Khan", "MGK Burgess","JM Coles", "N McAndrew", "FJ Hudson-Prentice", "D Ibrahim", "TS Mills", "HT Crocombe")
-glamor = c("Callum Taylor", "SA Northeast", "KS Carlson", "CA Ingram", "CB Cooke","Zain-ul-Hassan", "WT Root", "T van der Gugten", "RAJ Smith", "P Hatzoglou", "JP McIlroy")
-somers = c("T Banton", "WCF Smeed", "T Kohler-Cadmore", "TB Abell", "SR Dickson","L Gregory", "BGF Green", "RE van der Merwe", "JH Davey", "C Overton", "avplay_BW")
+durham = c("G Clark", "AZ Lees", "MA Jones", "OG Robinson", "AJ Turner","BA Carse", "avplay_BW", "L Trevaskis", "BA Raine", "NA Sowter", "WD Parnell")
+lancs= c("PD Salt", "JC Buttler", "SJ Croft", "LWP Wells", "DJ Mitchell","LS Livingstone", "DJ Vilas", "TW Hartley", "L Wood", "TE Bailey", "RP Jones")
+foxes = c("NR Welch", "LJ Hill", "RK Patel", "CN Ackermann", "PWA Mulder","LPJ Kimber", "PSP Handscomb", "HJ Swindells", "CF Parkinson", "TAR Scriven", "MET Salisbury")
+sussex = c("TGR Clark", "RS Bopara", "HD Ward", "Shadab Khan", "MGK Burgess","JM Coles", "N McAndrew", "FJ Hudson-Prentice", "D Ibrahim", "TS Mills", "HT Crocombe")
+glamor = c("CA Ingram", "SA Northeast", "KS Carlson", "CD Fletcher", "CB Cooke","Zain-ul-Hassan", "WT Smale", "P Sisodiya", "RAJ Smith", "P Hatzoglou", "JP McIlroy")
+somers = c("T Banton", "WCF Smeed", "T Kohler-Cadmore", "TB Abell", "SR Dickson","L Gregory", "BGF Green", "RE van der Merwe", "JH Davey", "C Overton", "MJ Henry")
 essex = c("RJ Das", "FIN Khushi", "MS Pepper", "PI Walter", "JS Rymell","DR Sams", "WEL Buttleman", "SR Harmer", "MJJ Critchley", "S Snater", "SJ Cook")
-kent = c("TS Muyeye", "DJ Bell-Drummond", "JL Denly", "SW Billings", "JM Cox","JA Leaning", "GF Linde", "G Stewart", "FJ Klaassen", "KW Richardson", "MG Hogan")
+kent = c("TS Muyeye", "DJ Bell-Drummond", "JL Denly", "SW Billings", "JM Cox","JA Leaning", "GF Linde", "G Stewart", "FJ Klaassen", "WA Agar", "MG Hogan")
 surrey = c("WG Jacks", "LJ Evans", "SM Curran", "Tk Curran", "SP Narine","JL Smith", "SA Abbott", "J Overton", "CJ Jordan", "CT Steel", "TE Lawes")
-northam = c("EN Gay", "CA Lynn", "JJ Cobb", "DJ Willey", "SA Zaib","LD McManus", "TAI Taylor", "avplay_BW", "AJ Tye", "JJG Sales", "FJ Heldreich")
+northam = c("EN Gay", "CA Lynn", "JJ Cobb", "DJ Willey", "SA Zaib","LD McManus", "TAI Taylor", "avplay_BW", "AJ Tye", "BW Sanderson", "FJ Heldreich")
 worces = c("BL D'Oliveira", "MG Bracewell", "JA Haynes", "MJ Santner", "AJ Hose","Kashif Ali", "EJ Pollock", "OB Cox", "AW Finch", "DY Pennington", "PR Brown")
-notts = c("JM Clarke", "AD Hales", "C Munro", "M Montgomery", "TJ Moores","CG Harrison", "SJ Mullaney", "SR Patel", "Shaheen Shah Afridi", "M Carter", "JT Ball")
-bears = c("RM Yates", "AL Davies", "GJ Maxwell", "SR Hain", "CG Benjamin","DR Mousley", "EG Barnard", "DR Briggs", "Hasan Ali", "JB Lintott", "CN Miles")
-hamps = c("BR McDermott", "JM Vince", "avplay_BW", "JJ Weatherley", "RA Whiteley","JK Fuller", "TE Albert", "LA Dawson", "NT Ellis", "MS Crane", "CP Wood")
+notts = c("JM Clarke", "AD Hales", "LW James", "M Montgomery", "TJ Moores","CG Harrison", "SJ Mullaney", "Imad Wasim", "Shaheen Shah Afridi", "OP Stone", "JT Ball")
+bears = c("RM Yates", "AL Davies", "GJ Maxwell", "JG Bethell", "CG Benjamin","DR Mousley", "EG Barnard", "DR Briggs", "Hasan Ali", "JB Lintott", "OJ Hannon-Dalby")
+hamps = c("BR McDermott", "JM Vince", "CP Wood", "JJ Weatherley", "RA Whiteley","JK Fuller", "TE Albert", "LA Dawson", "NT Ellis", "BAC Howell", "avplay_BW")
 
 
 
@@ -3897,16 +3898,26 @@ team_sum2 = team_sum %>% bind_cols(match_pred)
 }
 
 
-match_sum = team_bat(worces,bears, "worces")  %>%
-                     bind_rows(team_bat(Middlesex, kent, "midd")) %>%
-                               bind_rows(team_bat(york, foxes, "yorks")) %>%
-                            bind_rows(team_bat(durham, derby, "durham")) %>%
-                              bind_rows(team_bat(somers, surrey, "somer")) %>%
-                                  bind_rows(team_bat(lancs, northam, "lancs")) %>%
-                                    bind_rows(team_bat(sussex, hamps, "sussex")) %>%
-                                        bind_rows(team_bat(essex, glamor, "esssex"))
+match_sum = team_bat(durham,bears, "durham")  %>%
+                     bind_rows(team_bat(lancs, northam, "lancs")) %>%
+                               bind_rows(team_bat(surrey, essex, "surrey")) %>%
+                            bind_rows(team_bat(derby, worces, "derby")) %>%
+                              bind_rows(team_bat(hamps, glouces, "hamps")) %>%
+                                  bind_rows(team_bat(notts, foxes, "foxes")) %>%
+                                    bind_rows(team_bat(somers, kent, "kent"))  %>%
+                                  bind_rows(team_bat(glamor, Middlesex, "glamor")) 
 
 
+
+
+
+
+```
+
+```{r}
+
+
+match_1706 = team_bat(glouces, kent, "glouces")
 
 
 
@@ -3915,6 +3926,8 @@ match_sum = team_bat(worces,bears, "worces")  %>%
 
 
 ```
+
+
 
 
 ```{r}
@@ -3945,8 +3958,8 @@ check_model(lgmod3)
 
 bat_comp = function(x,y){
 
-  team2_bat = tibble(somers) %>%
-                              rename(player = somers) %>%
+  team2_bat = tibble(x) %>%
+                              rename(player = x) %>%
                             left_join(t20blast_statsv4, by = "player") %>%
                               mutate(batrank = rank(desc(tot_bat_wp)))  %>%
                                   filter(batrank < 8) %>%
@@ -3965,8 +3978,8 @@ bat_comp = function(x,y){
 
 
 
-  team1_bat = tibble(glouces) %>%
-                              rename(player = glouces) %>%
+  team1_bat = tibble(y) %>%
+                              rename(player = y) %>%
                             left_join(t20blast_statsv4, by = "player") %>%
                               mutate(batrank = rank(desc(tot_bat_wp)))  %>%
                                   filter(batrank < 8) %>%
@@ -3992,9 +4005,18 @@ bat_comp = function(x,y){
   
   
   
+return(bat_sum)                                                  
+  
+  
+}
+
+
+mat1_sum = bat_comp(Middlesex, essex)
+
+
   cols = c(team1 = "#06d6a0", team2 = "#ffd166")
   
-  ggplot(bat_sum, aes(x = coltit, y = tot_bat_wp, col = team, label = player)) + 
+  ggplot(mat1_sum, aes(x = coltit, y = tot_bat_wp, col = team, label = player)) + 
                                                                       geom_point(size = 5) +
         labs(title = "Comparison between team1 and team2", x = "Batter", y = "Tot WPA per Match %") +
                             ..
@@ -4006,22 +4028,15 @@ bat_comp = function(x,y){
                                         legend.title = element_text(colour = "#118ab2"),
                                         axis.title = element_text(colour = "#118ab2", size =15),
                                         plot.title = element_text(colour = "#118ab2", size =17,face = "bold"))
-                                                  
-  
-  
-}
-
-
-
-
 ```
 
 ```{r}
 
 
+player_comp = function(x,y) {
 
-  team2_bat = tibble(somers) %>%
-                              rename(player = somers) %>%
+  team2_bat = tibble(x) %>%
+                              rename(player = x) %>%
                             left_join(t20blast_statsv4, by = "player") %>%
                               mutate(batrank = rank(desc(tot_bat_wp)))  %>%
                                   filter(batrank < 8) %>%
@@ -4040,8 +4055,8 @@ bat_comp = function(x,y){
   
   
 
- team2_bowl = tibble(somers) %>%
-                                rename(player = somers) %>%
+ team2_bowl = tibble(x) %>%
+                                rename(player = x) %>%
                             left_join(t20blast_statsv4, by = "player") %>%
                               mutate(bowlrank = rank(desc(bpi)))  %>%
                                 filter(bowlrank < 6) %>%
@@ -4057,8 +4072,8 @@ bat_comp = function(x,y){
  
  
  
-  team2_batop = tibble(glouces) %>%
-                                rename(player = glouces) %>%
+  team2_batop = tibble(y) %>%
+                                rename(player = y) %>%
                             left_join(t20blast_statsv4, by = "player") %>%
                               mutate(batrank = rank(desc(tot_bat_wp)))  %>%
                                   filter(batrank < 8) %>%
@@ -4075,8 +4090,8 @@ bat_comp = function(x,y){
                                       pivot_wider(names_from = coltit, values_from = tot_bat_wp)
 
 
-  team2_bowlop = tibble(glouces) %>%
-                              rename(player = glouces) %>%
+  team2_bowlop = tibble(y) %>%
+                              rename(player = y) %>%
                             left_join(t20blast_statsv4, by = "player") %>%
                               mutate(bowlrank = rank(desc(bpi)))  %>%
                                 filter(bowlrank < 6) %>%
@@ -4105,13 +4120,17 @@ bat_comp = function(x,y){
                                     mutate(team = if_else(pos == "bat", "team1", 
                                                           if_else(pos == "bowl", "team1", "team2")))
                                     
+
+ return(team_sum)
  
+} 
+  
  
- 
+ mat1_sum = player_comp(Middlesex, essex)
  
   cols = c(team1 = "#06d6a0", team2 = "#ffd166")
   
-  ggplot(team_sum, aes(x = rank, y = val, col = team)) + 
+  ggplot(mat1_sum, aes(x = rank, y = val, col = team)) + 
                                                                       geom_point(size = 5) +
                                                         facet_wrap(~position, scales = "free") +
         labs(title = "Comparison between team1 and team2", x = "Player", y = "Tot WPA per Match %") +
