@@ -19,16 +19,35 @@ library(tidyverse)
 
 ```
 
+```{r}
+
+na_check = vital_bat %>% filter(is.na(comp_fin)) %>%
+                              group_by(comp) %>%
+                                summarise(n = n())
+
+
+
+na_check2 = fin_dat %>% group_by(comp) %>%
+                              summarise(n = n())
+
+
+
+na_check3 = vital_bat %>% filter(is.na(comp_t2))
+
+
+
+```
+
 
 ```{r}
 
 
 
 
-vital_bat <- fin_dat %>%
-                 mutate(comp_t2 = if_else(comp == "Syed Mushtaq Ali Trophy", "Domestic",
-                                          if_else(comp == "Bangladesh Premier League", "Domestic", comp_t))) %>%
-               mutate(comp_fin = if_else(comp_t2 == "International", "international", )) %>%
+vital_bat <- fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t), 
+                          if_else(comp %in% c("Syed Mushtaq Ali Trophy", "Bangladesh Premier League"), "Domestic", "International"), comp_t)) %>%
+               mutate(comp_fin = if_else(comp_t2 == "International", "international", comp)) %>%
+                 mutate(comp_fin2 = if_else(comp_fin == "NatWest T20 Blast", "VItality Blast", comp_fin)) %>%
   group_by(bat, comp_fin) %>%
   mutate(batr = as.numeric(as.character(bat_run))) %>%
   summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
