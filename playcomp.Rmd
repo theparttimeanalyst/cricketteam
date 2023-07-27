@@ -1,0 +1,41 @@
+---
+title: "the100"
+output: html_document
+date: "2023-07-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r}
+
+
+library(tidyverse)
+
+
+```
+
+
+```{r}
+
+
+
+
+vital_bat <- fin_dat %>%
+                 mutate(comp_t2 = if_else(comp == "Syed Mushtaq Ali Trophy", "Domestic",
+                                          if_else(comp == "Bangladesh Premier League", "Domestic", comp_t))) %>%
+               mutate(comp_fin = if_else(comp_t2 == "International", "international", )) %>%
+  group_by(bat, comp_fin) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+  summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
+  mutate(wpa10 = totwpa / n)
+
+
+
+
+
+```
