@@ -38,6 +38,30 @@ na_check3 = vital_bat %>% filter(is.na(comp_t2))
 
 ```
 
+```{r} 
+
+match_teams = fin_dat %>% 
+                              slice_min(innball) %>%
+                                select(team, file) %>%
+                                    group_by(file) %>%
+                                        mutate(team3 = 1:n()) %>%
+                                            mutate(teamtext = if_else(team3 == 1, "team1", "team2")) %>%
+                                                select(-team3) %>%
+                                                pivot_wider(names_from = teamtext, values_from = team) %>%
+                    mutate(elite1 = if_else(team1 %in% c("India", "England", "New Zealand", "Pakistan", "Australia", 
+                                                     "South Africa", "West Indies", "Sri Lanka", "Bangladesh", "West Indies"), 1,0)) %>%
+                                          mutate(elite2 = if_else(team2 %in% c("India", "England", "New Zealand", "Pakistan", "Australia", 
+                                                     "South Africa", "West Indies", "Sri Lanka", "Bangladesh", "West Indies"),1,0)) %>%
+                                      mutate(elitetot = elite1 + elite2) %>%
+                                             mutate(matcht = if_else(elitetot == 2, "elite", "other"))
+
+
+
+
+
+
+```
+
 
 ```{r}
 
@@ -47,8 +71,10 @@ na_check3 = vital_bat %>% filter(is.na(comp_t2))
 vital_bat <- fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t), 
                           if_else(comp %in% c("Syed Mushtaq Ali Trophy", "Bangladesh Premier League"), "Domestic", "International"), comp_t)) %>%
                mutate(comp_fin = if_else(comp_t2 == "International", "international", comp)) %>%
-                 mutate(comp_fin2 = if_else(comp_fin == "NatWest T20 Blast", "VItality Blast", comp_fin)) %>%
-  group_by(bat, comp_fin) %>%
+                 mutate(comp_fin2 = if_else(comp_fin == "NatWest T20 Blast", "Vitality Blast", comp_fin)) %>%
+                    separate(comp_fin2, into = c("x1", "x2", "x3", "x4"), sep = " ") %>%
+                     mutate(comp_fin3 =   if_else(x1 == "ICC", "international", comp_fin2)) %>%
+  group_by(bat, comp_fin3) %>%
   mutate(batr = as.numeric(as.character(bat_run))) %>%
   summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
   mutate(wpa10 = totwpa / n)
