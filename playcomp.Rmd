@@ -126,12 +126,63 @@ bat_sum_in = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
 
 
 
-
 ```{r}
 
 
 
 
+bat_sum_ga = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t), 
+            if_else(comp %in% c("Syed Mushtaq Ali Trophy", "Bangladesh Premier League"), "Domestic", "International"), comp_t)) %>%
+               mutate(comp_fin = if_else(comp_t2 == "International", "international", comp)) %>%
+                 mutate(comp_fin2 = if_else(comp_fin == "NatWest T20 Blast", "Vitality Blast", comp_fin)) %>%
+                    mutate(comp_fin2a = comp_fin2) %>%
+                    separate(comp_fin2, into = c("x1", "x2", "x3", "x4"), sep = " ") %>%
+                     mutate(comp_fin3 =   if_else(x1 == "ICC", "international", comp_fin2a)) %>%
+                       left_join(match_teams, by = "file") %>%
+                          mutate(comp_fin4 = if_else(matcht == "elite", "elite internation", comp_fin3)) %>%
+                                mutate(gameper = if_else(innball < 37, "powerplay", 
+                                                         if_else(innball > 90, "death", "mid"))) %>%
+                                     group_by(bat,gameper, comp_fin4) %>%
+                                 summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, ball = n()) %>%
+                                mutate(wpa10 = totwpa / n) %>%
+                                      select(bat, gameper, comp_fin4, wpa10) %>%
+                                          pivot_wider(names_from = gameper, values_from = wpa10) %>%
+                                                  rename(pp_wpa10 = powerplay, death_wpa10 = death, mid_wpa = mid)
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+
+
+bat_kpi = vital_bat %>% left_join(bat_sum_in, by = c("bat", "comp_fin4")) %>%
+                            left_join(bat_sum_ga, by = c("bat", "comp_fin4"))
 
 
 
