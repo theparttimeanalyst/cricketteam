@@ -4172,6 +4172,369 @@ player_comp = function(x,y) {
 
 
 ```
+### the hundred
+
+
+
+```{r}
+
+
+
+pheonix = c("Miles Hammond", "WCF Smeed", "DR Mousley", "BM Duckett", "BAC Howell", "MM Ali", "LS Livingstone", "JG Bethell", "Shadab Khan
+", "CG Benjamin", "JL Smith","TG Helm", "HJH Brookes", "AF Milne", "KW Richardson", "CR Woakes")
+spirit = c("Z Crawley", "DW Lawrence", "DJ Bell-Drummond", "LA Dawson", "RS Bopara", "JA Thompson", "DJ Mitchell", "AM Rossington", "MS Pepper", "MS Wade", "CP Wood", "MA Wood", "NT Ellis", "DJ Worrall", "MS Crane")
+origionals = c("WL Madsen", "PI Walter", "LJ Evans", "MDE Holden", "TA Lammonby", "AJ Turner", "BA Raine", "Usama Mir", "PD Salt", "JC Buttler", "RJ Gleeson", "MT Stanley", "J Little", "Zaman Khan", "TW Hartley")
+superch = c("A Lyth","AJ Hose", "HC Brook", "DJM Short", "SA Zaib", "BA Stokes", "D Wiese", "BFW de Leede", "T Banton", "OG Robinson", "WD Parnell", "MJ Potts", "BA Carse", "RJW Topley", "AU Rashid", "CF Parkinson")
+invinc = c("WG Jacks", "JJ Roy", "JM Cox", "TS Muyeye", "RA Whiteley", "SM Curran", "TK Curran", "SP Narine", "TE Lawes", "JDS Neesham", 
+           "SW Billings", "H Klaassen", "AAP Atkinson", "ZJ Chappell", "Ihsanullah", "DR Briggs", "NA Sowter", "A Zampa")
+brave =c("JJ Weatherley", "JM Vince", "TH David", "DP Conway", "FH Allen", "JL du Plooy", "GHS Garton", "JK Fuller", "MJ Santner", "AL Davies", "C Overton", "CJ Jordan", "TS Mills", "MD Fisher", "Rehan Ahmed", "JA Chohan")
+rocket = c("AD Hales", "DJ Malan", "JE Root", "C Munro", "SR Hain", "SR Patel", "L Gregory", "TJ Moores", "T Kohler-Cadmore", "L Wood", "SJ Cook", "DR Sams", "JA Turner", "BTJ Wheal", "Rashid Khan", "M Carter", "IS Sodhi")
+fire = c("GD Phillips", "SS Eskinazi", "TB Abell", "DA Douthwaite", "BGF Green", "RE van der Merwe", "LWP Wells", "DJ Willey", "JM Clarke", "JM Bairstow", "CB Cooke", "DA Payne", "GLS Scrimshaw", "JT Ball", "Haris Rauf", "Shaheen Shah Afridi")
+
+
+
+
+
+
+```
+
+
+
+````{r}
+
+the100_s = function(x, y) {
+  
+  
+  
+squads =  tibble(x)
+
+
+colnames(squads)[1] = "player"
+
+
+                      
+                        bat_sum = squads %>%
+                              left_join(t20blast_statsv4, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                     pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+                                              
+
+
+
+
+                      bowl_sum = squads %>% 
+                             left_join(t20blast_statsv4, by = "player") %>%
+                             mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                               mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                     mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+squads_ph = bat_sum %>% bind_cols(bowl_sum) %>%
+                            mutate(team = y )
+
+
+return(squads_ph)
+
+
+}
+
+
+squad_sum = the100_s(pheonix, "pheonix") %>% 
+                  bind_rows(the100_s(spirit, "spirit")) %>% 
+                    bind_rows(the100_s(origionals, "origionals")) %>%
+                          bind_rows(the100_s(superch, "northern")) %>% 
+                    bind_rows(the100_s(invinc, "invinc")) %>%
+                             bind_rows(the100_s(brave, "brave")) %>%
+                          bind_rows(the100_s(rocket, "trent")) %>% 
+                    bind_rows(the100_s(fire, "fire")) 
+
+````
+
+
+
+```{r}
+
+
+
+
+the100_s2 = function(x, y) {
+  
+  
+  
+squads =  tibble(x)
+
+
+colnames(squads)[1] = "player"
+
+
+                      
+                        bat_sum = squads %>%
+                              left_join(t20blast_statsv4, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                        mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                     pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+                                              
+
+
+
+
+                      bowl_sum = squads %>% 
+                             left_join(t20blast_statsv4, by = "player") %>%
+                             mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                               mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                     mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+squads_ph = bat_sum %>% bind_cols(bowl_sum) %>%
+                            mutate(teams = y )
+
+
+return(squads_ph)
+
+
+}
+
+
+squad_sumop = the100_s2(pheonix, "pheonix") %>% 
+                  bind_rows(the100_s2(spirit, "spirit")) %>% 
+                    bind_rows(the100_s2(origionals, "origionals")) %>%
+                          bind_rows(the100_s2(superch, "northern")) %>% 
+                    bind_rows(the100_s2(invinc, "invinc")) %>%
+                             bind_rows(the100_s2(brave, "brave")) %>%
+                          bind_rows(the100_s2(rocket, "trent")) %>% 
+                    bind_rows(the100_s2(fire, "fire")) 
+
+
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+no = c(1:8)
+
+teams = c("pheonix", "spirit", "origionals", "northern", "invinc", "brave", "trent", "fire")
+
+
+
+hun_team = tibble(no, teams)
+
+match_sum = squad_sum %>% mutate(match = 8) %>% 
+                                  uncount(match) %>% 
+                                    group_by(team) %>% 
+                                        mutate(no = 1:n()) %>% 
+                                          left_join(hun_team, by = "no") %>%
+                                      left_join(squad_sumop, by = "teams")
+
+
+
+
+
+match_pred = predict(fin_fitv4, match_sum, type = "prob")
+
+
+match_sum2 = match_sum %>% bind_cols(match_pred)  
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+
+
+team_bat = function(x,y,z){
+  
+  
+
+  team2_bat = tibble(x) %>%
+                              rename(player = x) %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+  
+  
+
+ team2_bowl = tibble(x) %>%
+                                rename(player = x) %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+ 
+ 
+ 
+  team2_batop = tibble(y) %>%
+                                rename(player = y) %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+  team2_bowlop = tibble(y) %>%
+                              rename(player = y) %>%
+                            left_join(t20blast_statsv4, by = "player") %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                                          select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+  
+
+  
+ 
+ 
+ team_sum = team2_bat %>% bind_cols(team2_bowl) %>%
+                                  bind_cols(team2_bowlop) %>%
+                                        bind_cols(team2_batop) %>%
+                                          mutate(team = z)
+
+ 
+ 
+match_pred = predict(fin_fitv4, team_sum, type = "prob")
+
+
+team_sum2 = team_sum %>% bind_cols(match_pred)  
+
+ 
+ 
+ return(team_sum2)
+ 
+}
+
+
+match_sum = team_bat(rocket,brave, "rocket")  %>%
+                     bind_rows(team_bat(fire, origionals, "fire")) %>%
+                               bind_rows(team_bat(spirit, invinc, "spirit")) %>%
+                            bind_rows(team_bat(superch, worces, "derby")) %>%
+                              bind_rows(team_bat(hamps, glouces, "hamps")) %>%
+                                  bind_rows(team_bat(notts, foxes, "foxes")) %>%
+                                    bind_rows(team_bat(somers, kent, "kent"))  %>%
+                                  bind_rows(team_bat(glamor, Middlesex, "glamor")) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+test = fin_dat %>% filter(comp == "Vitality Blast") %>%
+                                filter(yy == 2023)
+
+
+
+
+
+
+
+
+```
+
 
 ```{r}
 
