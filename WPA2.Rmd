@@ -4126,7 +4126,7 @@ player_comp = function(x,y) {
 } 
   
  
- mat1_sum = player_comp(Middlesex, essex)
+ mat1_sum = player_comp(pheonix, spirit)
  
   cols = c(team1 = "#06d6a0", team2 = "#ffd166")
   
@@ -4355,6 +4355,18 @@ squad_sumop = the100_s2(pheonix, "pheonix") %>%
 
 
 
+```{R}
+
+
+
+
+
+
+
+```
+
+
+
 
 ```{r}
 
@@ -4391,6 +4403,50 @@ match_sum2 = match_sum %>% bind_cols(match_pred)
 
 
 ```
+
+
+```{R}
+
+
+team = c("pheonix", "spirit", "origionals", "northern", "invinc", "brave", "trent", "fire")
+rival = c("trent", "invinc", "northern", "origionals", "spirit", "fire", "pheonix", "brave")
+
+riv_time = tibble(team, rival)
+
+tour_tab = squad_sum %>% mutate(match = 8) %>% 
+                                  uncount(match) %>% 
+                                    group_by(team) %>% 
+                                        mutate(no = 1:n()) %>% 
+                                          left_join(hun_team, by = "no")  %>%
+                                              left_join(riv_time, by = "team") %>%
+                                                  mutate(team_mes = if_else(team == teams, 1,0)) %>%
+                                                    mutate(team3 = if_else(team_mes == 1, rival, teams)) %>%
+                                            select(-teams) %>%
+                                                rename(teams = team3) %>%
+                                      left_join(squad_sumop, by = "teams")
+
+
+
+
+
+match_pred = predict(fin_fitv4, tour_tab, type = "prob")
+
+
+tour_tab2 = tour_tab %>% bind_cols(match_pred) %>%
+                              mutate(points = if_else(.pred_Yes >0.5, 2,0), delta = .pred_Yes - .pred_No) %>%
+                                group_by(team) %>%
+                                    summarise(totpoint = sum(points), meandel = mean(delta))
+
+
+
+
+
+
+
+
+
+
+````
 
 
 ```{r}
