@@ -81,7 +81,22 @@ vital_bat <- fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
   group_by(bat, comp_fin4) %>%
   mutate(batr = as.numeric(as.character(bat_run))) %>%
   summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
-  mutate(wpa10 = totwpa / n)
+  mutate(wpa10 = totwpa / n)  %>%
+  ungroup() %>%
+  group_by(comp_fin4) 
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+
 
 
 
@@ -165,6 +180,57 @@ bat_sum_ga = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
 
 
 
+
+```{r}
+
+
+bat_stat <- fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t), 
+            if_else(comp %in% c("Syed Mushtaq Ali Trophy", "Bangladesh Premier League"), "Domestic", "International"), comp_t)) %>%
+               mutate(comp_fin = if_else(comp_t2 == "International", "international", comp)) %>%
+                 mutate(comp_fin2 = if_else(comp_fin == "NatWest T20 Blast", "Vitality Blast", comp_fin)) %>%
+                    mutate(comp_fin2a = comp_fin2) %>%
+                    separate(comp_fin2, into = c("x1", "x2", "x3", "x4"), sep = " ") %>%
+                     mutate(comp_fin3 =   if_else(x1 == "ICC", "international", comp_fin2a)) %>%
+                       left_join(match_teams, by = "file") %>%
+                          mutate(comp_fin4 = if_else(matcht == "elite", "elite internation", comp_fin3)) %>%
+  group_by(bat, comp_fin4) %>%
+  mutate(batr = as.numeric(as.character(bat_run))) %>%
+                        summarise(totrun = sum(batr), totballs = n())
+
+
+
+
+bat_match = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t), 
+            if_else(comp %in% c("Syed Mushtaq Ali Trophy", "Bangladesh Premier League"), "Domestic", "International"), comp_t)) %>%
+               mutate(comp_fin = if_else(comp_t2 == "International", "international", comp)) %>%
+                 mutate(comp_fin2 = if_else(comp_fin == "NatWest T20 Blast", "Vitality Blast", comp_fin)) %>%
+                    mutate(comp_fin2a = comp_fin2) %>%
+                    separate(comp_fin2, into = c("x1", "x2", "x3", "x4"), sep = " ") %>%
+                     mutate(comp_fin3 =   if_else(x1 == "ICC", "international", comp_fin2a)) %>%
+                       left_join(match_teams, by = "file") %>%
+                          mutate(comp_fin4 = if_else(matcht == "elite", "elite internation", comp_fin3)) %>%
+  group_by(bat, file, comp_fin4) %>%
+                            summarise(n = n()) %>%
+                                ungroup() %>%
+                                  group_by(bat, comp_fin4) %>%
+                              summarise(inns = n())
+ 
+
+
+
+bat_stat2 = bat_stat %>% left_join(bat_match, by = c("bat", "comp_fin4")) %>%
+                              mutate(bpi = totballs/inn, rpi = totrun/inn) %>%
+                                  select(bat, comp_fin4, bpi, rpi)
+
+
+
+
+
+
+
+
+
+```
 
 
 
