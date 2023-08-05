@@ -835,8 +835,6 @@ ipl_play  = match_play %>% left_join(info2, by = "file") %>%
 
 
 
-
-
 ```
 
 
@@ -886,6 +884,64 @@ team2_bowl = ipl_play %>%
 ```
 
 
+```{r}
+
+
+
+team2_batop = ipl_play %>%
+                              group_by(team) %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                     filter(batrank < 8) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                        
+                                          select(team, coltit, tot_bat_wp) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+team2_bowlop = ipl_play %>%
+                              group_by(team) %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr")))))) %>%
+                        
+                                          select(team, coltit, wpa6) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+team_sumop_ipl = team2_batop %>% left_join(team2_bowlop, by = "team") %>%
+                              rename(opteam = team)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
 
 
 ```{r}
@@ -907,9 +963,44 @@ team_sum2 = team_sum %>% ungroup() %>%
                               uncount(n) %>%
                                group_by(team) %>%
                                   mutate(teamno = 1:n()) %>%
-                                    left_join(teams_ipl, by = "teamno")
+                                    left_join(teams_ipl, by = "teamno") %>%
+                                rename(opteam = team.y) %>%
+                              left_join(team_sumop_ipl, by = "opteam") %>%
+                              mutate(fil = if_else(team.x == opteam, 1,0)) %>%
+                                filter(fil == 0)
  
 
+
+match_pred = predict(fin_fitv4, team_sum2, type = "prob")
+
+
+team_sum3  = team_sum2 %>% bind_cols(match_pred)  
+
+
+```
+
+
+
+```{r}
+
+
+
+
+team_match = fin_dat %>% select(file, team) %>%
+                              distinct(team) %>%
+                                  group_by(file) %>%
+                                      mutate(teamno = 1:n()) %>%
+                                          mutate(nerrr = if_else(teamno == 1, "team.x", "opteam")) %>%
+                                              ungroup() %>%
+                                                select(-teamno) %>%
+                                            pivot_wider(names_from = nerrr, values_from = team) %>%
+                                              left_join(info2, by = "file") %>%
+                                                  mutate(date = Match_dat) %>%
+                                          separate(date, into = c("yy", "mm", "DD")) %>%
+                                              filter(yy == 2023)
+  
+
+team_sum4 = team_sum3 %>% left_join(team_match, by = c("team.x", "opteam"))
 
 
 
