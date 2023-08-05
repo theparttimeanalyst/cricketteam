@@ -746,11 +746,169 @@ team_sum2_south = team_sum %>% bind_cols(preds) %>%
 
 
 
+wood = fin_dat %>% filter(comp == "Vitality Blast") %>%
+                          group_by(bowl, file, yy) %>%
+                              summarise(totbow = sum(bowldelt, na.rm = T), n = n()) %>%
+                                mutate(wpa6 = totbow/(n/6)) %>%
+                                  filter(bowl == "NA Sowter")
+
+
+
+ggplot(wood, aes(x = yy, y = wpa6, group = yy)) + geom_boxplot()
 
 
 
 
 
+
+
+
+```
+
+
+
+
+```{r}
+
+
+all_bowl = fin_dat %>% filter(comp == "Vitality Blast") %>%
+                          group_by(bowl, file, yy) %>%
+                              summarise(totbow = sum(bowldelt, na.rm = T), n = n()) %>%
+                                mutate(wpa6 = totbow/(n/6)) %>%
+                                    filter(n > 11)
+
+
+ggplot(all_bowl, aes(x = wpa6)) + geom_histogram()
+
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+all_bowl = fin_dat %>% filter(comp == "Vitality Blast") %>%
+                          filter(yy == 2023) %>%
+                                ungroup() %>%
+                                 group_by(bowl) %>%
+                                  summarise(totbow = sum(bowldelt, na.rm = T), n = n()) %>%
+                                mutate(wpa6 = totbow/(n/6)) 
+                            
+
+
+
+
+
+
+
+
+
+
+```
+
+
+###### ipl 
+
+```{r}
+
+
+ipl_play  = match_play %>% left_join(info2, by = "file") %>%
+                                    filter(comp == "Indian Premier League") %>%
+                                        separate(Match_dat, into = c("yy", "mm", "dd"), sep = "-") %>%
+                                          filter(yy == 2023) %>%
+                                              group_by(team, player) %>%
+                                                summarise(n = n()) %>%
+                                            left_join(ipl_statsv4, by = "player") %>%
+                                            select(team, player, tot_bat_wp, wpa6, n, bpi) %>%
+                                                  ungroup() %>%
+                                                    group_by(team) %>%
+                                                      mutate(rankl  = rank(desc(n))) %>%
+                                                    filter(rankl < 12)
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+team2_bat = ipl_play %>%
+                              group_by(team) %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                     filter(batrank < 8) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                        
+                                          select(team, coltit, tot_bat_wp) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+team2_bowl = ipl_play %>%
+                              group_by(team) %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                        
+                                          select(team, coltit, wpa6) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+team_sum = team2_bat %>% left_join(team2_bowl) 
+
+
+teams_ipl = team_sum %>%
+                      select(team) %>%
+                            ungroup() %>%
+                            mutate(teamno = 1:n())
+ 
+
+
+
+team_sum2 = team_sum %>% ungroup() %>%
+                            mutate(n = 10) %>%
+                              uncount(n) %>%
+                               group_by(team) %>%
+                                  mutate(teamno = 1:n()) %>%
+                                    left_join(teams_ipl, by = "teamno")
+ 
 
 
 
