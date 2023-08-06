@@ -1000,7 +1000,86 @@ team_match = fin_dat %>% select(file, team) %>%
                                               filter(yy == 2023)
   
 
-team_sum4 = team_sum3 %>% left_join(team_match, by = c("team.x", "opteam"))
+team_sum4 = team_sum3 %>% left_join(team_match, by = c("team.x", "opteam")) %>%
+                                                  filter(!is.na(file))
+
+
+
+```
+
+
+
+
+```{r}
+
+
+iplmatch = team_sum4 %>% select(team.x, opteam, Match_dat, file)
+
+
+
+write.csv(iplmatch, "iplmatch.csv")
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+ipl_odds = read_csv("iplmatch.csv")
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+team_sum5 = team_sum4 %>% left_join(ipl_odds, by = c("file", "team.x", "opteam")) %>%
+                                  mutate(odd_per_teamx = 1/team.x_win, odd_per_opteam = 1/opteam_win) %>%
+                                    mutate(totper = odd_per_teamx + odd_per_opteam) %>%
+                                      mutate(act_teamx = odd_per_teamx/totper, act_opteam = odd_per_opteam/totper)
+
+
+
+
+
+
+
+ggplot(team_sum5, aes(x = .pred_Yes, y = act_teamx)) + geom_point()
+
+
+
+````
+
+
+
+
+
+```{r}
+
+
+
+
+
+team_sum6 = team_sum5 %>% mutate(predel = .pred_Y - .pred_No) 
+
+
+
+
+
+
 
 
 
