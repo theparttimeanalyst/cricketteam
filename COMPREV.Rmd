@@ -1247,3 +1247,38 @@ ggplot(team_sum_tea3, aes(x = team.x, y = per, col = comp)) + geom_point(size = 
 
 
 ```
+
+
+
+
+
+
+```{r}
+
+
+
+
+bet_win_sum = team_sum5 %>% 
+                            mutate(predel = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win = if_else(predel > 0, team.x, opteam))  %>%
+                                      left_join(ipl_odds_sum, by = c("file", "pred_win")) %>%
+                                        mutate(bet_am = if_else(predel > 0, 
+                                                                if_else(.pred_Yes > 0.6, 15, 
+                                                                        if_else(.pred_Yes < 0.55, 5,10)), 
+                                                                if_else(.pred_No > 0.6, 15, 
+                                                                        if_else(.pred_No < 0.55, 5,10)))) %>%
+                                   mutate(winnings = if_else(pred_win == winning_team, odds*bet_am-bet_am, -bet_am))  %>%
+                                    arrange(Match_dat.x) %>%
+                                      mutate(matchno = 1:n()) %>%
+                                        mutate(cum_win = cumsum(winnings))
+                                               
+
+
+
+ggplot(bet_win_sum, aes(x = matchno, y = cum_win)) + geom_line()
+ 
+
+
+
+
+```
