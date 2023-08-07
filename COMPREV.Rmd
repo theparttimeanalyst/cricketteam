@@ -1205,22 +1205,40 @@ ggplot(team_sum6, aes(x = roundy, y = per)) + geom_line()
 
 
 
-team_sum6 = team_sum5 %>% mutate(predel = .pred_Yes - .pred_No)  %>%
-                                  mutate(pred_win = if_else(predel > 0, team.x, opteam)) %>%
-                                    mutate(winp = if_else(pred_win == winning_team, 1,0)) %>%
+team_sum_tea = team_sum5 %>% mutate(predel_mod = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win_mod = if_else(predel_mod > 0, team.x, opteam)) %>%
+                                    mutate(winp_mod = if_else(pred_win_mod == winning_team, 1,0)) %>%
                                         ungroup() %>%
-                                          mutate(predel = act_teamx - act_opteam)  %>%
-                                  mutate(pred_win = if_else(predel > 0, team.x, opteam)) %>%
-                                    mutate(winp = if_else(pred_win == winning_team, 1,0))
+                                          mutate(predel_odd = act_teamx - act_opteam)  %>%
+                                  mutate(pred_win_odd = if_else(predel_odd > 0, team.x, opteam)) %>%
+                                    mutate(winp_odd  = if_else(pred_win_odd == winning_team, 1,0)) %>%
+                                          select(team.x, pred_win_odd, winp_mod, pred_win_odd, winp_odd)
+
+
+team_sum_tea2 = team_sum5 %>% mutate(predel_mod = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win_mod = if_else(predel_mod > 0, team.x, opteam)) %>%
+                                    mutate(winp_mod = if_else(pred_win_mod == winning_team, 1,0)) %>%
+                                        ungroup() %>%
+                                          mutate(predel_odd = act_teamx - act_opteam)  %>%
+                                  mutate(pred_win_odd = if_else(predel_odd > 0, team.x, opteam)) %>%
+                                    mutate(winp_odd  = if_else(pred_win_odd == winning_team, 1,0)) %>%
+                                          select(opteam, pred_win_odd, winp_mod, pred_win_odd, winp_odd) %>%
+                                            rename(team.x = opteam)
 
 
 
 
+team_sum_tea3 = team_sum_tea %>% bind_rows(team_sum_tea2) %>%
+                                      group_by(team.x) %>%
+                                        summarise(totmod = sum(winp_mod), totodd = sum(winp_odd), n = n()) %>%
+                                            mutate(per_mod = totmod/n, per_odd = totodd/n) %>%
+                                              select(team.x, per_mod, per_odd) %>%
+                                            pivot_longer(cols = 2:3, names_to = "comp", values_to = "per")
 
 
 
 
-
+ggplot(team_sum_tea3, aes(x = team.x, y = per, col = comp)) + geom_point(size = 4) + coord_flip()
 
 
 
