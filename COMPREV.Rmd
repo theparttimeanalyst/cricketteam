@@ -1129,3 +1129,103 @@ bet_win_sum = team_sum5 %>% mutate(predel = .pred_Yes - .pred_No)  %>%
                                                    opteam_win, pred_win, winning_team, odds, winnings)
 
 ```
+
+
+
+
+
+
+```{r}
+
+
+
+winn_match = bet_win_sum %>% filter(winnings > 0) %>%
+                                summarise(totwin = sum(winnings))
+
+
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+
+bet_win = team_sum5 %>% mutate(predel = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win = if_else(predel > 0, team.x, opteam))  %>%
+                                      left_join(ipl_odds_sum, by = c("file", "pred_win")) 
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+team_sum6 = team_sum5 %>% mutate(predel = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win = if_else(predel > 0, team.x, opteam)) %>%
+                                    mutate(winp = if_else(pred_win == winning_team, 1,0)) %>%
+                                        mutate(roundy = round(.pred_Yes, 1)) %>%
+                                          ungroup() %>%
+                                          group_by(roundy) %>%
+                                            summarise(n = n(), tot = sum(winp)) %>%
+                                              mutate(per = tot/n)
+
+
+
+ggplot(team_sum6, aes(x = roundy, y = per)) + geom_line()
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+
+team_sum6 = team_sum5 %>% mutate(predel = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win = if_else(predel > 0, team.x, opteam)) %>%
+                                    mutate(winp = if_else(pred_win == winning_team, 1,0)) %>%
+                                        ungroup() %>%
+                                          mutate(predel = act_teamx - act_opteam)  %>%
+                                  mutate(pred_win = if_else(predel > 0, team.x, opteam)) %>%
+                                    mutate(winp = if_else(pred_win == winning_team, 1,0))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
