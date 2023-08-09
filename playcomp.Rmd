@@ -270,7 +270,12 @@ player_list =  player_list_bat %>%
                           bind_rows(player_list_bowl) %>%
                           distinct(player) %>%
                               left_join(player_list_bat2, by = "player") %>%
-                                left_join(player_list_bowl2, by = "player") 
+                                left_join(player_list_bowl2, by = "player")  %>%
+                                   mutate(bb2= replace_na(bb, 0), bf2 = replace_na(bf, 0)) %>%
+                                    mutate(tot = bb2 + bf2) %>%
+                                      mutate(per_bat = bf/tot, per_bowl = bb/tot) %>%
+                              mutate(position = if_else(per_bat > 0.7, "batter", 
+                                                        if_else(per_bowl > 0.7, "bowler", "all rounder")))
 
 
 
