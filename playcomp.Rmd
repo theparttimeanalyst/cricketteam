@@ -232,7 +232,38 @@ bat_stat2 = bat_stat %>% left_join(bat_match, by = c("bat", "comp_fin4")) %>%
 
 
 
+```{r}
 
+
+
+
+player_list_bat = fin_dat %>% group_by(bat, file) %>%
+                              summarise(n =n()) %>%
+                                ungroup() %>%
+                                    distinct(bat) %>%
+                             rename(player = bat)
+
+
+
+player_list_bowl = fin_dat %>% group_by(bowl, file) %>%
+                                 summarise(n =n()) %>%
+                                ungroup() %>%
+                                    distinct(bowl) %>%
+                             rename(player = bowl)
+
+
+player_list =  player_list_bat %>%
+                          bind_rows(player_list_bowl)
+
+
+
+
+
+
+
+
+
+```
 
 
 
