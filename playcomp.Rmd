@@ -251,9 +251,26 @@ player_list_bowl = fin_dat %>% group_by(bowl, file) %>%
                                     distinct(bowl) %>%
                              rename(player = bowl)
 
+player_list_bat2 = fin_dat %>%
+                             group_by(bat) %>%
+                                summarise(bf = n()) %>%
+                                  rename(player = bat)
+
+
+player_list_bowl2 = fin_dat %>%
+                             group_by(bowl) %>%
+                                summarise(bb = n()) %>%
+                                  rename(player = bowl)
+
+
+
+
 
 player_list =  player_list_bat %>%
-                          bind_rows(player_list_bowl)
+                          bind_rows(player_list_bowl) %>%
+                          distinct(player) %>%
+                              left_join(player_list_bat2, by = "player") %>%
+                                left_join(player_list_bowl2, by = "player") 
 
 
 
