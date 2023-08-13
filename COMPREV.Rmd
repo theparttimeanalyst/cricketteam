@@ -1282,3 +1282,26 @@ ggplot(bet_win_sum, aes(x = matchno, y = cum_win)) + geom_line()
 
 
 ```
+
+
+
+```{r}
+
+
+
+bet_win_sum_del = team_sum5 %>% 
+                            mutate(predel = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win = if_else(predel > 0, team.x, opteam))  %>%
+                                      left_join(ipl_odds_sum, by = c("file", "pred_win")) %>%
+                            select(team.x, opteam, .pred_No, .pred_Yes, Match_dat.x, winning_team, team.x_win, opteam_win, act_teamx, act_opteam, predel)
+
+
+
+
+
+
+
+
+
+
+```
