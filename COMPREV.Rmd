@@ -1288,15 +1288,25 @@ ggplot(bet_win_sum, aes(x = matchno, y = cum_win)) + geom_line()
 ```{r}
 
 
+pred_r = c(1:40)
+bet_am  = c(1:40)
+
+
+bet_am2 = tibble(pred_r, bet_am)
+
+
+
 
 bet_win_sum_del = team_sum5 %>% 
                             mutate(predel = .pred_Yes - .pred_No)  %>%
                                   mutate(pred_win = if_else(predel > 0, team.x, opteam))  %>%
                                       left_join(ipl_odds_sum, by = c("file", "pred_win")) %>%
-                            select(team.x, opteam, .pred_No, .pred_Yes, Match_dat.x, winning_team, team.x_win, opteam_win, act_teamx, act_opteam, predel)
-
-
-
+                            select(team.x, opteam, .pred_No, .pred_Yes, Match_dat.x, winning_team, team.x_win, opteam_win, act_teamx, act_opteam, predel, odds) %>%
+                              mutate(pred_win = if_else(predel > 0, team.x, opteam)) %>%
+                                  mutate(pred_abs = abs(.pred_Yes - .pred_No)) %>%
+                                    mutate(pred_r = round(pred_abs*100, 0)) %>%
+                                          left_join(bet_am2, by = "pred_r") %>%
+                                    mutate(winning = if_else(pred_win == winning_team, bet_am*odds, 0-bet_am))
 
 
 
