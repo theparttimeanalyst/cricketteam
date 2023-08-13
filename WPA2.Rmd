@@ -3349,8 +3349,72 @@ print(final_metrics)
 
 
 ```
+##modelinvest
 
 
+```{r}
+
+
+cols = c("bat_1", "bat_2", "bat_3","bat_4","bat_5","bat_6","bat_7", "bowl_1", "bowl_2","bowl_3","bowl_4","bowl_5","OPbowl_1","OPbowl_2",
+         "OPbowl_3","OPbowl_4","OPbowl_5", "opbat_1", "opbat_2","opbat_3","opbat_4","opbat_5","opbat_6","opbat_7")
+
+sim_dat = tibble(cols) %>%
+                    mutate(values_1 = 0) %>%
+                          pivot_wider(names_from = cols, values_from = values_1)
+
+
+pred_sim_dat = predict(fin_fitv4,sim_dat, type = "prob")
+ 
+
+
+sim_dat2 = sim_dat %>% bind_cols(pred_sim_dat)
+
+#dat_create = function(x){
+
+bat_1 = seq(0, 0.06, by = 0.005)
+
+
+match_bat1 = tibble(x) %>%
+                          
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+
+
+cols <- c("bat_1", "bat_2", "bat_3","bat_4","bat_5","bat_6","bat_7", "bowl_1", "bowl_2","bowl_3","bowl_4","bowl_5","OPbowl_1","OPbowl_2",
+          "OPbowl_3","OPbowl_4","OPbowl_5", "opbat_1", "opbat_2","opbat_3","opbat_4","opbat_5","opbat_6","opbat_7")
+
+n <- length(cols)
+result <- data.frame(matrix(0, nrow = 10 * n, ncol = n))
+names(result) <- cols
+
+for (i in 1:n) {
+  start_row <- (i - 1) * 10 + 1
+  end_row <- i * 10
+  result[start_row:end_row, i] <- seq(0, 0.06, length.out = 10)
+}
+
+print(result)
+
+
+
+
+
+
+
+
+
+
+```
 
 ```{r}
 
@@ -4183,8 +4247,7 @@ player_comp = function(x,y) {
 
 
 
-pheonix = c("Miles Hammond", "WCF Smeed", "DR Mousley", "BM Duckett", "BAC Howell", "LS Livingstone", "JG Bethell", "Shadab Khan
-", "CG Benjamin", "JL Smith","TG Helm", "HJH Brookes", "AF Milne", "KW Richardson", "CR Woakes")
+pheonix = c("Miles Hammond", "WCF Smeed", "DR Mousley", "BM Duckett", "BAC Howell", "LS Livingstone", "JG Bethell", "Shadab Khan", "CG Benjamin", "JL Smith","TG Helm", "HJH Brookes", "AF Milne", "KW Richardson", "MM Ali")
 spirit = c("Z Crawley", "DW Lawrence", "DJ Bell-Drummond", "LA Dawson", "RS Bopara", "JA Thompson", "DJ Mitchell", "AM Rossington", "MS Pepper", "MS Wade", "CP Wood", "NT Ellis", "DJ Worrall", "MS Crane")
 origionals = c("WL Madsen", "PI Walter", "LJ Evans", "MDE Holden", "TA Lammonby", "AJ Turner", "BA Raine", "Usama Mir", "PD Salt", "JC Buttler", "RJ Gleeson", "MT Stanley", "J Little", "Zaman Khan", "TW Hartley")
 superch = c("A Lyth","AJ Hose", "HC Brook", "DJM Short", "SA Zaib", "BA Stokes", "D Wiese", "BFW de Leede", "T Banton", "OG Robinson", "WD Parnell", "MJ Potts", "BA Carse", "RJW Topley", "AU Rashid", "CF Parkinson")
