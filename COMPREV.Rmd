@@ -1306,7 +1306,91 @@ bet_win_sum_del = team_sum5 %>%
                                   mutate(pred_abs = abs(.pred_Yes - .pred_No)) %>%
                                     mutate(pred_r = round(pred_abs*100, 0)) %>%
                                           left_join(bet_am2, by = "pred_r") %>%
-                                    mutate(winning = if_else(pred_win == winning_team, bet_am*odds, 0-bet_am))
+                                    mutate(winning = if_else(pred_win == winning_team, bet_am*odds-bet_am, 0-bet_am)) %>%
+                                        arrange(Match_dat.x) %>%
+                                      mutate(matchno = 1:n()) %>%
+                                        mutate(cum_win = cumsum(winning)) 
+
+
+
+
+
+ggplot(bet_win_sum_del, aes(x = matchno, y = cum_win)) + geom_line()
+ 
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+
+
+summar_win = bet_win_sum_del %>% ungroup() %>%
+                                     summarise(mesn_win = mean(winning), sd_win = sd(winning))
+
+
+
+
+preds = rnorm(10000, 0.42, 19.15)
+
+
+
+post_out = tibble(preds)
+
+
+
+ggplot(post_out, aes(x = preds)) + geom_histogram()
+
+
+```
+
+
+
+```{r}
+
+
+
+post_sum = post_out %>% summarise(tot = sum(preds))
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+```{r}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
