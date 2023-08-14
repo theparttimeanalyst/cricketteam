@@ -3369,16 +3369,6 @@ pred_sim_dat = predict(fin_fitv4,sim_dat, type = "prob")
 
 sim_dat2 = sim_dat %>% bind_cols(pred_sim_dat)
 
-#dat_create = function(x){
-
-bat_1 = seq(0, 0.06, by = 0.005)
-
-
-match_bat1 = tibble(x) %>%
-                          
-
-
-
 
 
 
@@ -3394,13 +3384,13 @@ cols <- c("bat_1", "bat_2", "bat_3","bat_4","bat_5","bat_6","bat_7", "bowl_1", "
           "OPbowl_3","OPbowl_4","OPbowl_5", "opbat_1", "opbat_2","opbat_3","opbat_4","opbat_5","opbat_6","opbat_7")
 
 n <- length(cols)
-result <- data.frame(matrix(0, nrow = 10 * n, ncol = n))
+result <- data.frame(matrix(0, nrow = 100 * n, ncol = n))
 names(result) <- cols
 
 for (i in 1:n) {
-  start_row <- (i - 1) * 10 + 1
-  end_row <- i * 10
-  result[start_row:end_row, i] <- seq(0, 0.06, length.out = 10)
+  start_row <- (i - 1) * 100 + 1
+  end_row <- i * 100
+  result[start_row:end_row, i] <- seq(0, 0.1, length.out = 10)
 }
 
 print(result)
@@ -3408,6 +3398,34 @@ print(result)
 
 
 
+pred_sim_dat = predict(fin_fitv4,result, type = "prob")
+ 
+
+
+results2 = result %>% bind_cols(pred_sim_dat)
+
+
+
+
+bat_1_sum = results2 %>% select(bowl_5, .pred_Yes) %>%
+                                filter(bowl_5 >0)
+
+
+
+ggplot(bat_1_sum, aes(x = bowl_5, y = .pred_Yes)) + geom_point()
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
+ggplot(model_dat_v4, aes(x = bowl_5)) + geom_density()
 
 
 
@@ -4255,7 +4273,7 @@ invinc = c("WG Jacks", "JJ Roy", "JM Cox", "TS Muyeye", "RA Whiteley", "SM Curra
            "SW Billings", "H Klaassen", "AAP Atkinson", "ZJ Chappell", "Ihsanullah", "DR Briggs", "NA Sowter", "A Zampa")
 brave =c("JJ Weatherley", "JM Vince", "TH David", "DP Conway", "FH Allen", "JL du Plooy", "GHS Garton", "JK Fuller", "MJ Santner", "AL Davies", "C Overton", "CJ Jordan", "TS Mills", "MD Fisher", "Rehan Ahmed", "JA Chohan")
 rocket = c("AD Hales", "DJ Malan", "C Munro", "SR Hain", "SR Patel", "L Gregory", "TJ Moores", "T Kohler-Cadmore", "L Wood", "SJ Cook", "DR Sams", "JA Turner", "BTJ Wheal", "M Carter", "IS Sodhi")
-fire = c("GD Phillips", "SS Eskinazi", "TB Abell", "DA Douthwaite", "BGF Green", "RE van der Merwe", "LWP Wells", "DJ Willey", "JM Clarke", "CB Cooke", "DA Payne", "GLS Scrimshaw", "JT Ball", "Haris Rauf", "Shaheen Shah Afridi")
+fire = c("GD Phillips", "SS Eskinazi", "TB Abell", "DA Douthwaite", "BGF Green", "RE van der Merwe", "LWP Wells", "DJ Willey", "JM Clarke", "CB Cooke", "DA Payne", "GLS Scrimshaw", "JT Ball", "Haris Rauf", "Shaheen Shah Afridi", "JM Bairstow")
 
 
 
@@ -4727,7 +4745,33 @@ match_sum = team_bat(rocket,brave, "rocket")  %>%
 
 ```
 
+##### cpl 
 
+
+```{r}
+
+
+
+royals = c("R Powell", "JO Holder", "KR Mayers", "Qais Ahmad", "LJ Evans", "A Athanaze", "OC McCoy", "RE van der Merwe", "ROO Jordan", 
+           "RRS Cornwall", "D Ferreira", "JP Greaves", "J Bishop", "NRJ Young", "RA Clarke", "RR Simmonds")
+warriers = c("Imran Tahir", "SO Hetmyer", "Mohammad Haris", "OF Smith", "R Shepherd", "Azam Khan", "SD Hope", "Saim Ayub", "G Motie", "D Pretorius", "K Sinclair", "KMA Paul", "C Hemraj", "RR Beaton", "JA Sinclair")
+tallawahs = c("Imad Wasim", "BA King", "FA Allen", "AD Hales", "Mohammad Amir", "Naveen-ul-Haq", "CJ Green", "BCJ Cutting", "J Blackwood", "SSJ Brooks", "HR Walsh", "RA Reifer", "AA Jangoo", "SR Taylor", "SK Springer", "NA Gordon", "KSA McKenzie", "JM James")
+patriots = c("E Lewis", "T Stubbs", "ADS Fletcher", "SE Rutherford", "DC Drakes", "SS Cottrell", "GF Linde", "Y Cariah", "O Thomas", "C Bosch", "D Brevis", "JU Goolie", "Izharulhaq Naveed", "KHM James", "J Da Silva", "AR Nedd", "AT Rayudu")
+kings = c("F du Plessis", "J Charles", "MD Shanaka", "AS Joseph", "RL Chase", "Jair McAllister", "Sikandar Raza", "P Hatzoglou", "PBB Rajapaksa", "RS Primus", "J Royal", "Sadrack Descarte", "K Pierre", "LJA Julien","MW Forde", "CB Sole", "SC Williams")
+knight = c("KA Pollard", "AD Russell", "SP Narine", "N Pooran", "RR Rossouw", "AJ Hosein", "DJ Bravo", "MJ Guptill", "Noor Ahmad", 
+           "M Pathirana", "JNT Seales", "M Deyal", "CAK Walton", "T Hinds", "K Alleyne", "JC Carmichael")
+
+
+
+
+
+
+
+
+
+
+
+```
 
 ```{r}
 
