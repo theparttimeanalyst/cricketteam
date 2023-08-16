@@ -4268,7 +4268,7 @@ player_comp = function(x,y) {
 
 
 
-pheonix = c("Miles Hammond", "WCF Smeed", "DR Mousley", "BM Duckett", "BAC Howell", "LS Livingstone", "JG Bethell", "Shadab Khan", "CG Benjamin", "JL Smith","TG Helm", "HJH Brookes", "AF Milne", "KW Richardson", "MM Ali")
+pheonix = c("Miles Hammond", "WCF Smeed", "DR Mousley", "BM Duckett", "BAC Howell", "LS Livingstone", "JG Bethell", "Shadab Khan", "CG Benjamin", "JL Smith","TG Helm", "HJH Brookes", "AF Milne", "KW Richardson", "MM Ali", "CR Woakes")
 spirit = c("Z Crawley", "DW Lawrence", "DJ Bell-Drummond", "LA Dawson", "RS Bopara", "JA Thompson", "DJ Mitchell", "AM Rossington", "MS Pepper", "MS Wade", "CP Wood", "NT Ellis", "DJ Worrall", "MS Crane")
 origionals = c("WL Madsen", "PI Walter", "LJ Evans", "MDE Holden", "TA Lammonby", "AJ Turner", "BA Raine", "Usama Mir", "PD Salt", "JC Buttler", "RJ Gleeson", "MT Stanley", "J Little", "Zaman Khan", "TW Hartley")
 superch = c("A Lyth","AJ Hose", "HC Brook", "DJM Short", "SA Zaib", "BA Stokes", "D Wiese", "BFW de Leede", "T Banton", "OG Robinson", "WD Parnell", "MJ Potts", "BA Carse", "RJW Topley", "AU Rashid", "CF Parkinson")
@@ -4776,7 +4776,160 @@ knight = c("KA Pollard", "AD Russell", "SP Narine", "N Pooran", "RR Rossouw", "A
 
 ```
 
+```{r}
 
+
+
+
+
+
+
+allplay_stats = play_stats2 %>%  
+                        
+                            left_join(player_list, by = "player")
+
+
+
+average_bowl = allplay_stats %>%
+                              filter(bb > 100) %>%
+                                    group_by(comp2) %>% 
+                    summarise(meanwpa6 = mean(wpa6), mbpi = mean(bpi)) %>%
+                      mutate(player = "avplay_BW") %>%
+                            rename(wpa6 = meanwpa6, bpi = mbpi) %>%
+                              mutate(bf = 0, totwap = -0.2, inn = 0, wpa10 = -5, bbi = 20, tot_bat_wp = -10, bb = 0, tot_wpa = -5, match = 0 )
+
+
+average_bat = allplay_stats %>%
+                              filter(bf > 100) %>%
+                                group_by(comp2) %>% 
+                    summarise(meanwpa6 = mean(wpa10), meanball= mean(bbi)) %>%
+                      mutate(player = "avplay_BA") %>%
+                            rename(wpa10 = meanwpa6, bbi = meanball) %>%
+              mutate(bf = 0, totwap = -0.2, inn = 0, tot_bat_wp = wpa10*bbi, bb = 0, tot_wpa = -5, match = 0, bpi = 0 )
+
+
+
+
+
+caribean_bat = allplay_stats %>% 
+                                    select(comp2, player, wpa10, bbi) %>%  
+                                        mutate(tot_bat_wp = wpa10/10 * bbi) %>% 
+                                     
+                                          filter(comp2 == "Caribbean Premier League")
+
+
+
+caribean_bowl = allplay_stats %>% select(comp2, player, wpa6, bb) %>% 
+                                          filter(comp2 == "Caribbean Premier League")
+
+
+#av_bowl2 = average_bowl %>% select(wpa6) %>%
+ #                           rename(av_play = wpa6)
+
+
+#owl_u100 = allplay_stats %>%
+ #                           filter(bb < 100) %>%
+  #                            left_join(play)
+   #                           filter(Position %in% c("Bowler", "All Rounder")) %>%
+    #                            bind_cols(av_bowl2) %>%
+     #                             mutate(wpapb = av_play/6) %>%
+      #                              mutate(balldel = 100 - bb) %>%
+       #                               mutate(totextra = balldel * wpapb) %>%
+        #                                 mutate(totact = wpa6/6*bb) %>%
+         #                               mutate(wpa_sum_adj = (totact + totextra)/16.667) %>%
+          #                                    select(player, wpa_sum_adj)
+
+
+
+
+#t20blast_statsv4 = t20blast_statsv3 %>% left_join(bowl_u100, by = "player") %>%
+ #                 mutate(act_tot_wpa = if_else(is.na(wpa_sum_adj), wpa6, wpa_sum_adj)) %>%
+  #                        select(-wpa6) %>%
+   #                               rename(wpa6 = act_tot_wpa)
+
+
+
+
+
+
+
+
+
+
+#av_bat2 = average_bat %>% select(wpa10) %>%
+ #                           rename(av_play = wpa10)
+
+
+#batt_u100 = t20blast_stats %>%
+ ##                           filter(bf < 100) %>%
+   #                           filter(Position %in% c("Batter", "All Rounder")) %>%
+    #                            bind_cols(av_bat2) %>%
+     #                             mutate(wpapb = av_play/10) %>%
+      ##                              mutate(balldel = 100 - bf) %>%
+        #                              mutate(totextra = balldel * wpapb) %>%
+         #                               mutate(wpa_sum_adj = (totwpa + totextra)/10) %>%
+          #                                  mutate(tot_wpa_adj = wpa_sum_adj * bbi) %>%
+           #                                   select(player, tot_wpa_adj)
+
+
+
+
+#t20blast_statsv3 = t20blast_statsv2 %>% left_join(batt_u100, by = "player") %>%
+ #                 mutate(act_tot_wpa = if_else(is.na(tot_wpa_adj), tot_bat_wp, tot_wpa_adj)) %>%
+  #                        select(-tot_bat_wp) %>%
+   #                               rename(tot_bat_wp = act_tot_wpa)
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#av_bowl2 = average_bowl %>% select(wpa6) %>%
+ #                           rename(av_play = wpa6)
+
+
+#bowl_u100 = t20blast_stats %>%
+ #                           filter(bb < 100) %>%
+  #                            filter(Position %in% c("Bowler", "All Rounder")) %>%
+   #                             bind_cols(av_bowl2) %>%
+    #                              mutate(wpapb = av_play/6) %>%
+     ##                               mutate(balldel = 100 - bb) %>%
+       #                               mutate(totextra = balldel * wpapb) %>%
+        #                                 mutate(totact = wpa6/6*bb) %>%
+         #                               mutate(wpa_sum_adj = (totact + totextra)/16.667) %>%
+          #                                    select(player, wpa_sum_adj)
+
+
+
+
+#t20blast_statsv4 = t20blast_statsv3 %>% left_join(bowl_u100, by = "player") %>%
+  #                mutate(act_tot_wpa = if_else(is.na(wpa_sum_adj), wpa6, wpa_sum_adj)) %>%
+ #                         select(-wpa6) %>%
+   #                               rename(wpa6 = act_tot_wpa)
+
+
+
+
+
+
+
+
+
+
+
+
+````
 
 ```{r}
 
@@ -4796,7 +4949,9 @@ cpl_squad1 = cp_squad(royals, "royals") %>%
                               bind_rows(cp_squad(patriots, "patriots")) %>%
                             bind_rows(cp_squad(kings, "kings")) %>%
                                 bind_rows(cp_squad(knight, "knight")) %>% 
-                                  left_join(player_list, by = "player")
+                                  left_join(player_list, by = "player") %>%
+                                    left_join(caribean_bat, by = "player") %>%
+                                        left_join(caribean_bowl, by = "player")
 
 
 
