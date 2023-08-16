@@ -5092,6 +5092,14 @@ all_teams2 = all_teams %>% mutate(no2 = 6) %>%
 
 
 
+
+cpl_pred = predict(fin_fitv4, all_teams2, type = "prob")
+
+
+cpl_sum2 = all_teams2 %>% bind_cols(cpl_pred)  
+
+
+
 ```
 
 
