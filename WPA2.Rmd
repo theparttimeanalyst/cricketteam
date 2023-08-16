@@ -4819,7 +4819,7 @@ caribean_bat = allplay_stats %>%
 
 
 
-caribean_bowl = allplay_stats %>% select(comp2, player, wpa6, bb) %>% 
+caribean_bowl = allplay_stats %>% select(comp2, player, wpa6, bb, bpi) %>% 
                                           filter(comp2 == "Caribbean Premier League")
 
 
@@ -4988,20 +4988,15 @@ mod_sum_bat = cpl_squad1 %>% group_by(team) %>%
 
 
 mod_sum_bowl = cpl_squad1 %>% group_by(team) %>%
-                                   mutate(batrank = rank(desc(tot_bat_wp)))  %>%
-                                  filter(batrank < 8) %>%
-                                
-                                    select(batrank, tot_bat_wp) %>%
-                                      mutate(coltit = if_else(batrank == 1, "bat_1",
-                                                              if_else(batrank == 2, "bat_2",
-                                                                if_else(batrank == 3, "bat_3",
-                                                                  if_else(batrank == 4, "bat_4",
-                                                 if_else(batrank == 5, "bat_5",
-                                                         if_else(batrank == 6, "bat_6",
-                                                          if_else(batrank == 7, "bat_7", "brgrf"))))))))  %>%
-                                          select(-batrank) %>%
-                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
-
+                                 mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) 
 
 
 
