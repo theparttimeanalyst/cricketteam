@@ -4991,16 +4991,19 @@ mod_sum_bowl = cpl_squad1 %>% group_by(team) %>%
                                  mutate(bowlrank = rank(desc(bpi)))  %>%
                                 filter(bowlrank < 6) %>%
                                   mutate(bowlr = rank(desc(wpa6))) %>%
-                                    select(bowlr, wpa6) %>%
+                                    select(team, bowlr, wpa6) %>%
                                       mutate(coltit = if_else(bowlr == 1, "bowl_1",
                                                               if_else(bowlr == 2, "bowl_2",
                                                                 if_else(bowlr == 3, "bowl_3",
                                                                   if_else(bowlr == 4, "bowl_4",
-                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) 
+                                                 if_else(bowlr == 5, "bowl_5", "Rr"))))))  %>%
+                                    select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
 
 
 
 
+all_teams = mod_sum_bat %>% left_join(mod_sum_bowl, by = "team") 
 
 
 
