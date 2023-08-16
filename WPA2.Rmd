@@ -5071,6 +5071,30 @@ cpl_op = mod_sum_bat %>% left_join(mod_sum_bowl, by = "team") %>%
 
 
 ``` 
+```{r}
+
+
+no = c(1:6)
+
+opteam = c("royals", "warriers", "kings", "knight", "tallawahs", "patriots")
+
+
+
+cpl_team = tibble(no, opteam)
+
+
+all_teams2 = all_teams %>% mutate(no2 = 6) %>%
+                              uncount(no2) %>%
+                                group_by(team) %>%
+                                  mutate(no = 1:n()) %>%
+                                    left_join(cpl_team, by = "no") %>%
+                                      left_join(cpl_op, by = "opteam")
+
+
+
+```
+
+
 
 ```{r}
 
