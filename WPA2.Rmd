@@ -4951,9 +4951,7 @@ cpl_squad1 = cp_squad(royals, "royals") %>%
                                 bind_rows(cp_squad(knight, "knight")) %>% 
                                   left_join(player_list, by = "player") %>%
                                     left_join(caribean_bat, by = "player") %>%
-                                        left_join(caribean_bowl, by = "player")
-
-
+                                        left_join(caribean_bowl, by = "player") 
 
 
 
@@ -4963,6 +4961,55 @@ cpl_squad1 = cp_squad(royals, "royals") %>%
 
 ```
 
+```{r}
+
+
+
+
+mod_sum_bat = cpl_squad1 %>% group_by(team) %>%
+                                   mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf"))))))))  %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+
+
+
+mod_sum_bowl = cpl_squad1 %>% group_by(team) %>%
+                                   mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf"))))))))  %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+
+
+
+
+```
 
 ```{r}
 
