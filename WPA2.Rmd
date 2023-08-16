@@ -5009,6 +5009,69 @@ all_teams = mod_sum_bat %>% left_join(mod_sum_bowl, by = "team")
 
 ```
 
+
+```{r}
+
+
+
+
+mod_sum_bat = cpl_squad1 %>% group_by(team) %>%
+                                   mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(batrank, tot_bat_wp) %>%
+                                      mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf"))))))))  %>%
+                                          select(-batrank) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+
+
+
+mod_sum_bowl = cpl_squad1 %>% group_by(team) %>%
+                                 mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(team, bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr"))))))  %>%
+                                    select(-bowlr) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+
+
+
+
+cpl_op = mod_sum_bat %>% left_join(mod_sum_bowl, by = "team") %>% 
+                                  rename(opteam = team )
+
+
+
+
+
+
+
+
+
+
+
+
+``` 
+
 ```{r}
 
 
