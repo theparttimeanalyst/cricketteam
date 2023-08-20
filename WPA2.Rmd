@@ -4826,7 +4826,15 @@ caribean_bowl = allplay_stats %>% select(comp2, player, wpa6, bb, bpi) %>%
 
 
 
-carribean_bat2 = caribean_bat %>% left_join(average_bat, by = "comp2")
+carribean_bat2 = caribean_bat %>% left_join(average_bat, by = "comp2") %>%
+                                        mutate(batdel = 100 - bf) %>%
+                                          mutate(adj = wpa10_av/10 * batdel) %>%
+                                            mutate(act = wpa10/10*bf) %>%
+                                                mutate(wpa_new = if_else(batdel >0 , (act + adj)/10, wpa10)) %>%
+                                                  select(-tot_bat_wp) %>%
+                                                    mutate(tot_bat_wp = wpa_new/10*bbi) 
+                                                  
+
 
 
 #av_bowl2 = average_bowl %>% select(wpa6) %>%
@@ -4956,7 +4964,7 @@ cpl_squad1 = cp_squad(royals, "royals") %>%
                             bind_rows(cp_squad(kings, "kings")) %>%
                                 bind_rows(cp_squad(knight, "knight")) %>% 
                                   left_join(player_list, by = "player") %>%
-                                    left_join(caribean_bat, by = "player") %>%
+                                    left_join(carribean_bat2, by = "player") %>%
                                         left_join(caribean_bowl, by = "player") 
 
 
