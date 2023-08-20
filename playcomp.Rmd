@@ -275,7 +275,8 @@ player_list =  player_list_bat %>%
                                     mutate(tot = bb2 + bf2) %>%
                                       mutate(per_bat = bf/tot, per_bowl = bb/tot) %>%
                               mutate(position = if_else(per_bat > 0.7, "batter", 
-                                                        if_else(per_bowl > 0.7, "bowler", "all rounder")))
+                                                        if_else(per_bowl > 0.7, "bowler", "all rounder"))) %>%
+                                  select(player, position)
 
 
 
@@ -296,18 +297,20 @@ player_list =  player_list_bat %>%
 
 ```{r}
 
-
+player_listb = player_list %>%
+                            rename(bat = player) 
 
 bat_kpi = vital_bat %>% left_join(bat_sum_in, by = c("bat", "comp_fin4")) %>%
                             left_join(bat_sum_ga, by = c("bat", "comp_fin4")) %>%
                                 left_join(bat_stat2, by = c("bat", "comp_fin4")) %>%
-                                    group_by(comp_fin4) %>%
+                                      left_join(player_listb, by = "bat") %>%
+                                    group_by(comp_fin4, position) %>%
                                     mutate(wpa10per = percent_rank(wpa10), eawpaper = percent_rank(early_wpa10), 
                                            restwpaper = percent_rank(rest_wpa10), ppper = percent_rank(pp_wpa10), 
                                            mid_per = percent_rank(mid_wpa), death_per = percent_rank(death_wpa10), 
                                            bpi_per = percent_rank(bpi), rpi_per = percent_rank(rpi)) %>%
                               select(bat, comp_fin4, wpa10per, eawpaper, restwpaper, ppper, mid_per, death_per, bpi_per, rpi_per) %>%
-                                            pivot_longer(cols = 3:10, names_to = "kpi", values_to = "percent") 
+                                            pivot_longer(cols = 4:11, names_to = "kpi", values_to = "percent") 
 
 
 
@@ -335,6 +338,62 @@ player2 = bat_kpi %>% filter(bat %in% c("Shubman Gill", "DP Conway", "RG Sharma"
 
 
 ggplot(player2, aes(x = kpi, y = percent, col = bat)) + geom_point()
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+```{r}
+
+
+
+bat_kpi_max = vital_bat %>% left_join(bat_sum_in, by = c("bat", "comp_fin4")) %>%
+                            left_join(bat_sum_ga, by = c("bat", "comp_fin4")) %>%
+                                left_join(bat_stat2, by = c("bat", "comp_fin4")) %>%
+                                      left_join(player_listb, by = "bat") %>%
+                                          group_by(comp_fin4, position) %>%
+                                            mutate(percentile_wpa10 = percent_rank(wpa10), early_wpa10per = percent_rank(early_wpa10), 
+                                                rest_wpa10per = percent_rank(rest_wpa10), mid_wpa10per = percent_rank(mid_wpa),
+                                                death_wpa10per = percent_rank(death_wpa10), pp_wpa10per = percent_rank(pp_wpa10), 
+                                                bpi_per = percent_rank(bpi), rpi_per = percent_rank(rpi))
+
+
+
+
+
+
+
+play_sum = bat_kpi_max %>% 
+                            filter(bat == "WCF Smeed") %>%
+                                filter(comp_fin4 == "Vitality Blast") %>%
+                           select(bat, comp_fin4, position, wpa10, early_wpa10, rest_wpa10, mid_wpa, death_wpa10, pp_wpa10, bpi, rpi) %>%
+                                      pivot_longer(cols = 4:11, names_to = "stat", values_to = "meas")
+
+
+
+
+play_sum2 = bat_kpi_max %>% 
+                            filter(bat == "WCF Smeed") %>%
+                                filter(comp_fin4 == "Vitality Blast") %>%
+                           select(bat, comp_fin4, position, percentile_wpa10, early_wpa10per, rest_wpa10per, mid_wpa10per, death_wpa10per, pp_wpa10per, bpi_per, rpi_per) %>%
+                                      pivot_longer(cols = 4:11, names_to = "stat", values_to = "percentile")
+
+
+
+play_sum3 = play_sum %>% left_join(play_sum2, by = "stat")
+
+
 
 
 
