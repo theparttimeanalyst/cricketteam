@@ -4214,7 +4214,7 @@ player_comp = function(x,y) {
 } 
   
  
- mat1_sum = player_comp(pheonix, spirit)
+ mat1_sum = player_comp(royals, kings)
  
   cols = c(team1 = "#06d6a0", team2 = "#ffd166")
   
@@ -4758,7 +4758,7 @@ match_sum = team_bat(rocket,brave, "rocket")  %>%
 royals = c("R Powell", "JO Holder", "KR Mayers", "Qais Ahmad", "LJ Evans", "A Athanaze", "OC McCoy", "RE van der Merwe", "ROO Jordan", 
            "RRS Cornwall", "D Ferreira", "JP Greaves", "J Bishop", "NRJ Young", "RA Clarke", "RR Simmonds")
 warriers = c("Imran Tahir", "SO Hetmyer", "Mohammad Haris", "OF Smith", "R Shepherd", "Azam Khan", "SD Hope", "Saim Ayub", "G Motie", "D Pretorius", "K Sinclair", "KMA Paul", "C Hemraj", "RR Beaton", "JA Sinclair")
-tallawahs = c("Imad Wasim", "BA King", "FA Allen", "AD Hales", "Mohammad Amir", "Naveen-ul-Haq", "CJ Green", "BCJ Cutting", "J Blackwood", "SSJ Brooks", "HR Walsh", "RA Reifer", "AA Jangoo", "SR Taylor", "SK Springer", "NA Gordon", "KSA McKenzie", "JM James")
+tallawahs = c("Imad Wasim", "BA King", "FA Allen", "Mohammad Amir", "Naveen-ul-Haq", "CJ Green", "BCJ Cutting", "J Blackwood", "SSJ Brooks", "HR Walsh", "RA Reifer", "AA Jangoo", "SR Taylor", "SK Springer", "NA Gordon", "KSA McKenzie", "JM James")
 patriots = c("E Lewis", "T Stubbs", "ADS Fletcher", "SE Rutherford", "DC Drakes", "SS Cottrell", "GF Linde", "Y Cariah", "O Thomas", "C Bosch", "D Brevis", "JU Goolie", "Izharulhaq Naveed", "KHM James", "J Da Silva", "AR Nedd", "AT Rayudu")
 kings = c("F du Plessis", "J Charles", "MD Shanaka", "AS Joseph", "RL Chase", "Jair McAllister", "Sikandar Raza", "P Hatzoglou", "PBB Rajapaksa", "RS Primus", "J Royal", "Sadrack Descarte", "K Pierre", "LJA Julien","MW Forde", "CB Sole", "SC Williams")
 knight = c("KA Pollard", "AD Russell", "SP Narine", "N Pooran", "RR Rossouw", "AJ Hosein", "DJ Bravo", "MJ Guptill", "Noor Ahmad", 
@@ -4804,15 +4804,16 @@ average_bat = allplay_stats %>%
                                 group_by(comp2) %>% 
                     summarise(meanwpa6 = mean(wpa10), meanball= mean(bbi)) %>%
                       mutate(player = "avplay_BA") %>%
-                            rename(wpa10 = meanwpa6, bbi = meanball) %>%
-              mutate(bf = 0, totwap = -0.2, inn = 0, tot_bat_wp = wpa10*bbi, bb = 0, tot_wpa = -5, match = 0, bpi = 0 )
+                            rename(wpa10_av = meanwpa6, bbi_av = meanball) %>%
+              mutate(bf = 0, totwap = -0.2, inn = 0, tot_bat_wp_av = wpa10*bbi_av, bb = 0, tot_wpa = -5, match = 0, bpi = 0 ) %>%
+                              select(comp2, wpa10_av, bbi_av)
 
 
 
 
 
 caribean_bat = allplay_stats %>% 
-                                    select(comp2, player, wpa10, bbi) %>%  
+                                    select(comp2, player, wpa10, bbi, bf) %>%  
                                         mutate(tot_bat_wp = wpa10/10 * bbi) %>% 
                                      
                                           filter(comp2 == "Caribbean Premier League")
@@ -4821,6 +4822,11 @@ caribean_bat = allplay_stats %>%
 
 caribean_bowl = allplay_stats %>% select(comp2, player, wpa6, bb, bpi) %>% 
                                           filter(comp2 == "Caribbean Premier League")
+
+
+
+
+carribean_bat2 = caribean_bat %>% left_join(average_bat, by = "comp2")
 
 
 #av_bowl2 = average_bowl %>% select(wpa6) %>%
@@ -5102,6 +5108,41 @@ cpl_sum2 = all_teams2 %>% bind_cols(cpl_pred)
 
 ```
 
+
+```{r}
+
+
+
+
+mod_sum_bat = cpl_squad1 %>% group_by(team) %>%
+                                   mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                
+                                    select(team, player, batrank, tot_bat_wp, bf) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) 
+
+
+
+
+bat_sum = mod_sum_bat %>% filter(team %in% c("royals", "kings"))
+
+
+
+ggplot(bat_sum, aes(x = batrank, y = tot_bat_wp, col = team, size = bf)) + geom_point()
+
+
+
+
+
+
+
+```
 
 
 ```{r}
