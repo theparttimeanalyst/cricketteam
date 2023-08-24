@@ -49,12 +49,26 @@ match_teams = fin_dat %>%
                                                 select(-team3) %>%
                                                 pivot_wider(names_from = teamtext, values_from = team) %>%
                     mutate(elite1 = if_else(team1 %in% c("India", "England", "New Zealand", "Pakistan", "Australia", 
-                                                     "South Africa", "West Indies", "Sri Lanka", "Bangladesh", "West Indies"), 1,0)) %>%
+                                                     "South Africa", "West Indies", "Sri Lanka", "Bangladesh", "West Indies", "Ireland","Afghanistan"), 1,0)) %>%
                                           mutate(elite2 = if_else(team2 %in% c("India", "England", "New Zealand", "Pakistan", "Australia", 
-                                                     "South Africa", "West Indies", "Sri Lanka", "Bangladesh", "West Indies"),1,0)) %>%
+                                                     "South Africa", "West Indies", "Sri Lanka", "Bangladesh", "West Indies", "Afghanistan","Ireland"),1,0)) %>%
                                       mutate(elitetot = elite1 + elite2) %>%
                                              mutate(matcht = if_else(elitetot == 2, "elite", "other")) %>%
                                                 select(file, matcht)
+
+
+
+
+
+
+```
+
+
+```{r}
+
+test_dom = fin_dat %>% filter(comp_t == "Domestic") %>% 
+                                group_by(team) %>% 
+                                    summarise(n = n())
 
 
 
@@ -78,7 +92,7 @@ vital_bat <- fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
                      mutate(comp_fin3 =   if_else(x1 == "ICC", "international", comp_fin2a)) %>%
                        left_join(match_teams, by = "file") %>%
                           mutate(comp_fin4 = if_else(matcht == "elite", "elite internation", comp_fin3)) %>%
-  group_by(bat, comp_fin4) %>%
+  group_by(bat, comp_fin4, gen) %>%
   mutate(batr = as.numeric(as.character(bat_run))) %>%
   summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, tr = sum(batr), ball = n()) %>%
   mutate(wpa10 = totwpa / n)  %>%
@@ -95,7 +109,12 @@ vital_bat <- fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
 
 
 
+com_test = vital_bat %>% ungroup() %>% 
+                              group_by(comp_fin4) %>% 
+                                      summarise(n = n())
 
+
+com_test
 
 
 
@@ -122,10 +141,10 @@ bat_sum_in = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
                             group_by(file, bat) %>%
                               mutate(face_b = 1:n()) %>%
                                 mutate(inper = if_else(face_b < 6, "early", "rest")) %>%
-                                     group_by(bat,inper, comp_fin4) %>%
+                                     group_by(bat,inper, comp_fin4, gen) %>%
                                  summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, ball = n()) %>%
                                 mutate(wpa10 = totwpa / n) %>%
-                                      select(bat, inper, comp_fin4, wpa10) %>%
+                                      select(bat, gen, inper, comp_fin4, wpa10) %>%
                                           pivot_wider(names_from = inper, values_from = wpa10) %>%
                                                   rename(early_wpa10 = early, rest_wpa10 = rest)
 
@@ -155,13 +174,13 @@ bat_sum_ga = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
                           mutate(comp_fin4 = if_else(matcht == "elite", "elite internation", comp_fin3)) %>%
                                 mutate(gameper = if_else(innball < 37, "powerplay", 
                                                          if_else(innball > 90, "death", "mid"))) %>%
-                                     group_by(bat,gameper, comp_fin4) %>%
+                                     group_by(bat,gameper, comp_fin4, gen) %>%
                                  summarise(totwpa = sum(batdelt, na.rm = T) * 100, n = n() / 10, ball = n()) %>%
                                 mutate(wpa10 = totwpa / n) %>%
-                                      select(bat, gameper, comp_fin4, wpa10) %>%
+                                      select(bat, gameper, comp_fin4, gen, wpa10) %>%
                                           pivot_wider(names_from = gameper, values_from = wpa10) %>%
                                                   rename(pp_wpa10 = powerplay, death_wpa10 = death, mid_wpa = mid)
-
+ 
 
 
 
@@ -191,7 +210,7 @@ bat_stat <- fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
                      mutate(comp_fin3 =   if_else(x1 == "ICC", "international", comp_fin2a)) %>%
                        left_join(match_teams, by = "file") %>%
                           mutate(comp_fin4 = if_else(matcht == "elite", "elite internation", comp_fin3)) %>%
-  group_by(bat, comp_fin4) %>%
+  group_by(bat, comp_fin4, gen) %>%
   mutate(batr = as.numeric(as.character(bat_run))) %>%
                         summarise(totrun = sum(batr), totballs = n())
 
@@ -207,7 +226,7 @@ bat_match = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
                      mutate(comp_fin3 =   if_else(x1 == "ICC", "international", comp_fin2a)) %>%
                        left_join(match_teams, by = "file") %>%
                           mutate(comp_fin4 = if_else(matcht == "elite", "elite internation", comp_fin3)) %>%
-  group_by(bat, file, comp_fin4) %>%
+  group_by(bat, file, comp_fin4, gen) %>%
                             summarise(n = n()) %>%
                                 ungroup() %>%
                                   group_by(bat, comp_fin4) %>%
@@ -218,7 +237,7 @@ bat_match = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
 
 bat_stat2 = bat_stat %>% left_join(bat_match, by = c("bat", "comp_fin4")) %>%
                               mutate(bpi = totballs/inns, rpi = totrun/inns) %>%
-                                  select(bat, comp_fin4, bpi, rpi)
+                                  select(bat, comp_fin4, bpi, rpi, gen)
 
 
 
@@ -237,7 +256,7 @@ bat_stat2 = bat_stat %>% left_join(bat_match, by = c("bat", "comp_fin4")) %>%
 
 
 
-player_list_bat = fin_dat %>% group_by(bat, file) %>%
+player_list_bat = fin_dat %>% group_by(bat, file, gen) %>%
                               summarise(n =n()) %>%
                                 ungroup() %>%
                                     distinct(bat) %>%
@@ -245,7 +264,7 @@ player_list_bat = fin_dat %>% group_by(bat, file) %>%
 
 
 
-player_list_bowl = fin_dat %>% group_by(bowl, file) %>%
+player_list_bowl = fin_dat %>% group_by(bowl, file, gen) %>%
                                  summarise(n =n()) %>%
                                 ungroup() %>%
                                     distinct(bowl) %>%
@@ -264,19 +283,28 @@ player_list_bowl2 = fin_dat %>%
 
 
 
+player_list_gen = fin_dat %>% group_by(bat, gen) %>%
+                              summarise(n =n()) %>%
+                                ungroup()  %>%
+                                  rename(player = bat) %>% 
+                                    select(player, gen)
+
+
+
 
 
 player_list =  player_list_bat %>%
                           bind_rows(player_list_bowl) %>%
                           distinct(player) %>%
-                              left_join(player_list_bat2, by = "player") %>%
-                                left_join(player_list_bowl2, by = "player")  %>%
+                              left_join(player_list_bat2, by = c("player")) %>%
+                                left_join(player_list_bowl2, by = c("player"))  %>%
                                    mutate(bb2= replace_na(bb, 0), bf2 = replace_na(bf, 0)) %>%
                                     mutate(tot = bb2 + bf2) %>%
                                       mutate(per_bat = bf/tot, per_bowl = bb/tot) %>%
                               mutate(position = if_else(per_bat > 0.7, "batter", 
                                                         if_else(per_bowl > 0.7, "bowler", "all rounder"))) %>%
-                                  select(player, position)
+                                    left_join(player_list_gen, by = "player") %>% 
+                                  select(player, position, gen)
 
 
 
@@ -300,17 +328,17 @@ player_list =  player_list_bat %>%
 player_listb = player_list %>%
                             rename(bat = player) 
 
-bat_kpi = vital_bat %>% left_join(bat_sum_in, by = c("bat", "comp_fin4")) %>%
-                            left_join(bat_sum_ga, by = c("bat", "comp_fin4")) %>%
-                                left_join(bat_stat2, by = c("bat", "comp_fin4")) %>%
-                                      left_join(player_listb, by = "bat") %>%
-                                    group_by(comp_fin4, position) %>%
+bat_kpi = vital_bat %>% left_join(bat_sum_in, by = c("bat", "comp_fin4", "gen")) %>%
+                            left_join(bat_sum_ga, by = c("bat", "comp_fin4", "gen")) %>%
+                                left_join(bat_stat2, by = c("bat", "comp_fin4", "gen")) %>%
+                                      left_join(player_listb, by = "bat", "gen") %>%
+                                    group_by(comp_fin4, position, gen.x) %>%
                                     mutate(wpa10per = percent_rank(wpa10), eawpaper = percent_rank(early_wpa10), 
                                            restwpaper = percent_rank(rest_wpa10), ppper = percent_rank(pp_wpa10), 
                                            mid_per = percent_rank(mid_wpa), death_per = percent_rank(death_wpa10), 
                                            bpi_per = percent_rank(bpi), rpi_per = percent_rank(rpi)) %>%
-                              select(bat, comp_fin4, wpa10per, eawpaper, restwpaper, ppper, mid_per, death_per, bpi_per, rpi_per) %>%
-                                            pivot_longer(cols = 4:11, names_to = "kpi", values_to = "percent") 
+                              select(bat, comp_fin4, gen.x, wpa10per, eawpaper, restwpaper, ppper, mid_per, death_per, bpi_per, rpi_per) %>%
+                                            pivot_longer(cols = 5:12, names_to = "kpi", values_to = "percent") 
 
 
 
