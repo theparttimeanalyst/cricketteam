@@ -237,7 +237,7 @@ bat_match = fin_dat %>% mutate(comp_t2 = if_else(is.na(comp_t),
 
 bat_stat2 = bat_stat %>% left_join(bat_match, by = c("bat", "comp_fin4")) %>%
                               mutate(bpi = totballs/inns, rpi = totrun/inns) %>%
-                                  select(bat, comp_fin4, bpi, rpi, gen)
+                                  select(bat, comp_fin4, bpi, rpi, gen, inns)
 
 
 
@@ -442,18 +442,23 @@ play_sum3 = play_sum %>% left_join(play_sum2, by = c( "stat", "comp_fin4", "bat"
 
 ```{r}
 
+ 
+
 
 
 max_val1 = vital_bat %>% left_join(bat_sum_in, by = c("bat", "comp_fin4")) %>%
                             left_join(bat_sum_ga, by = c("bat", "comp_fin4")) %>%
                                 left_join(bat_stat2, by = c("bat", "comp_fin4")) %>%
                                       left_join(player_listb, by = "bat") %>%
+                                            filter(inns > 5) %>%
                                           group_by(comp_fin4, position) %>%
          select(bat, comp_fin4, wpa10, early_wpa10, rest_wpa10, mid_wpa, death_wpa10, pp_wpa10, bpi, rpi, position) %>% 
                     pivot_longer(cols = 3:10, names_to = "kpis", values_to = "meas")  %>% 
                                               ungroup() %>% 
                                                 group_by(comp_fin4, position, kpis) %>% 
-                                                  slice_max(meas)
+                                                  slice_max(meas) %>%
+                                                select(comp_fin4, position, kpis, meas) %>%
+                                                      rename(max = meas)
 
 
 
@@ -467,3 +472,78 @@ max_val1 = vital_bat %>% left_join(bat_sum_in, by = c("bat", "comp_fin4")) %>%
 
 
 ```
+
+
+
+
+````{r}
+
+
+
+
+
+kpi_vital = bat_kpi_max %>% filter(comp_fin4 == "Vitality Blast") %>%
+                                      filter(position == "batter") %>%
+                                      ungroup() %>%
+                                  select(bat, wpa10, early_wpa10, rest_wpa10, mid_wpa, death_wpa10, pp_wpa10, bpi, rpi) %>%
+                                      pivot_longer(cols = 2:9, names_to = "kpi", values_to = "val") %>%
+                                          filter(val > -15)
+                                  
+                                  
+                                  
+ggplot(kpi_vital, aes(x = val)) + geom_density() + facet_wrap(~kpi, scales = "free")                                  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+``` 
+
+
+
+
+
+
+
+```{r}
+
+
+kpi_vital = bat_kpi_max %>% filter(comp_fin4 == "Vitality Blast") %>%
+                                      filter(position == "batter") %>%
+                                     
+                                      ungroup() %>%
+                    select(bat, position, comp_fin4, wpa10, early_wpa10, rest_wpa10, mid_wpa, death_wpa10, pp_wpa10, bpi, rpi) %>%
+                                          pivot_longer(cols = 4:11, names_to = "kpis", values_to = "val") %>%
+                                                left_join(max_val1, by = c("comp_fin4", "position", "kpis")) %>%
+                                              filter(bat == "WCF Smeed")
+
+
+
+kpi_vital_per = bat_kpi_max %>% filter(comp_fin4 == "Vitality Blast") %>%
+                                      filter(position == "batter") %>%
+                                     
+                                      ungroup() %>%
+                    select(bat, position, comp_fin4, percentile_wpa10, early_wpa10per, rest_wpa10per, mid_wpa10per, death_wpa10per, pp_wpa10per, bpi_per, rpi_per) %>%
+                                     rename( wpa10 = percentile_wpa10, early_wpa10 = early_wpa10per, rest_wpa10 = rest_wpa10per, mid_wpa = mid_wpa10per, death_wpa10 = death_wpa10per, pp_wpa10 = pp_wpa10per, bpi = bpi_per, rpi = rpi_per) %>%
+                                          pivot_longer(cols = 4:11, names_to = "kpis", values_to = "percent")%>%
+                                              filter(bat == "WCF Smeed")
+
+kpi_vital2 = kpi_vital %>% left_join(kpi_vital_per, by = c("comp_fin4", "position", "kpis"))
+
+ggplot(kpi_vital2, aes(x = kpis, y = max)) + geom_col(col = "blue", fill = "white") +
+                                                geom_col(aes(x = kpis, y = val,fill = percent)) +
+                                                    facet_wrap(~kpis,ncol = 8, scales = "free")  +
+                                                        theme(panel.background = element_blank())
+
+
+
+````
