@@ -1684,6 +1684,36 @@ full_dat_comp = full_dat %>%
 ```{r}
 
 
+full_dat_comp2 = full_dat_comp %>% 
+                              mutate(strat2 = if_else(betwin == 1, odd_for*250 - 250, -250)) %>%
+                                   arrange(Match_dat.x) %>%
+                                      mutate(cum_strat2 = 100 + cumsum(strat2)) %>% 
+                                select(Match_dat.x, cumulative_value, cum_strat2) %>% 
+                                    mutate(matchno = 1:n()) %>% 
+                                      pivot_longer(cols = 2:3, names_to = "strat", values_to = "tot_bank")
+
+
+
+
+ggplot(full_dat_comp2, aes(x = matchno, y = tot_bank, col = strat)) + geom_line()
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+
 
 
 set.seed(123)
