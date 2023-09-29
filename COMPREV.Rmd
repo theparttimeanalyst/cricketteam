@@ -592,6 +592,230 @@ blast_play  = match_play %>% left_join(info2, by = "file") %>%
 ```
 
 
+```{r}
+
+
+blast_play_all  = match_play %>% left_join(info2, by = "file") %>%
+                                    filter(comp == "Vitality Blast") %>%
+                                        separate(Match_dat, into = c("yy", "mm", "dd"), sep = "-") %>%
+                                      
+                                      left_join(t20blast_statsv4, by = "player")
+
+
+team2_bat_all = blast_play_all %>%
+                              group_by(team, file) %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                     filter(batrank < 8) %>%
+                                      mutate(coltit = if_else(batrank == 1, "bat_1",
+                                                              if_else(batrank == 2, "bat_2",
+                                                                if_else(batrank == 3, "bat_3",
+                                                                  if_else(batrank == 4, "bat_4",
+                                                 if_else(batrank == 5, "bat_5",
+                                                         if_else(batrank == 6, "bat_6",
+                                                          if_else(batrank == 7, "bat_7", "brgrf")))))))) %>%
+                        
+                                          select(team, coltit, tot_bat_wp) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+team2_bowl_all = blast_play_all %>%
+                              group_by(team, file) %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) %>%
+                        
+                                          select(team, coltit, wpa6) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+
+
+teamo = team2_bat_all %>% select(team) %>%
+                            ungroup() %>%
+                              group_by(file) %>%
+                            mutate(opteam = n():1)
+
+
+team2_bat_allop = blast_play_all %>%
+                              group_by(team, file) %>%
+                              mutate(batrank = rank(desc(tot_bat_wp)))  %>%
+                                  filter(batrank < 8) %>%
+                                     filter(batrank < 8) %>%
+                                        mutate(coltit = if_else(batrank == 1, "opbat_1",
+                                                              if_else(batrank == 2, "opbat_2",
+                                                                if_else(batrank == 3, "opbat_3",
+                                                                  if_else(batrank == 4, "opbat_4",
+                                                 if_else(batrank == 5, "opbat_5",
+                                                         if_else(batrank == 6, "opbat_6",
+                                                          if_else(batrank == 7, "opbat_7", "brgrf")))))))) %>%
+                        
+                                          select(team, coltit, tot_bat_wp) %>%
+                                      pivot_wider(names_from = coltit, values_from = tot_bat_wp)
+
+
+
+
+team2_bowl_allop = blast_play_all %>%
+                              group_by(team, file) %>%
+                              mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(bowlr, wpa6) %>%
+                                       mutate(coltit = if_else(bowlr == 1, "OPbowl_1",
+                                                              if_else(bowlr == 2, "OPbowl_2",
+                                                                if_else(bowlr == 3, "OPbowl_3",
+                                                                  if_else(bowlr == 4, "OPbowl_4",
+                                                 if_else(bowlr == 5, "OPbowl_5", "Rr"))))))%>%
+                        
+                                          select(team, coltit, wpa6) %>%
+                                      pivot_wider(names_from = coltit, values_from = wpa6)
+
+
+
+op_sum = team2_bat_allop %>% left_join(team2_bowl_allop, by = c("file", "team")) %>%
+                                  ungroup() %>%
+                                    group_by(file) %>%
+                                        mutate(opteam = 1:n()) %>%
+                                        select(-team)
+
+
+
+team_sum  = team2_bat_all %>% left_join(team2_bowl_all, by = c("file", "team")) %>%
+                                  left_join(teamo, by = c("file", "team"))  %>%
+                                      left_join(op_sum, by = c("opteam", "file"))
+                                      
+
+
+
+
+
+match_pred = predict(fin_fitv4, team_sum, type = "prob")
+
+
+match_pred2 = predict(fin_fitv4, team_sum, type = "raw")
+
+
+team_sum2 = team_sum %>% 
+                      bind_cols(match_pred) 
+
+````
+```{r}
+
+
+
+act_res = info2 %>% filter(comp == "Vitality Blast") %>%
+                              select(file, winning_team)
+
+
+
+match_sum2 = team_sum2 %>% select(file, team, .pred_No, .pred_Yes) %>%
+                                  group_by(file) %>%
+                                    mutate(opteam = 1:n()) %>% 
+                                      left_join(teamo, by = c("opteam", "file"))  %>%
+                                          filter(opteam == 1) %>%
+                                            mutate(pred_win = if_else(.pred_Yes > .pred_No, team.x,team.y), 
+                                                   prob_win = if_else(.pred_Yes > .pred_No, .pred_Yes,.pred_No)) %>%
+                                                    
+
+
+
+
+```
+
+```{r}
+
+match_sum2 = team_sum2 %>% select(file, team, .pred_No, .pred_Yes) %>%
+                                          left_join(act_res, by = "file") %>%
+                                              mutate(win_mat = if_else(team == winning_team, 1,0)) %>%
+                                                mutate(round_prob = round(.pred_Yes/0.03)*0.03) %>%
+                                                  ungroup() %>%
+                                                      group_by(round_prob) %>%
+                                                      summarise(n = n(), totwin = sum(win_mat, na.rm = T)) %>%
+                                                          mutate(prob = totwin/n)
+
+
+
+
+x_col = c(0.1, 0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9)
+y_col = c(0.1, 0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9)
+
+
+cal_tab = tibble(x_col, y_col)
+
+
+ggplot(match_sum2, aes(x = round_prob, y = prob, size = n)) + geom_point() + 
+                                                                    geom_line(data = cal_tab, aes(x = x_col, y = y_col))
+
+
+
+
+
+
+
+
+
+
+
+```
+
+```{r}
+
+match_sum3 = team_sum2 %>% select(file, team, .pred_No, .pred_Yes) %>%
+                                          left_join(act_res, by = "file") %>%
+                                              mutate(target = if_else(team == winning_team, "yes", "no")) %>%
+                                                  ungroup()
+
+
+
+library(probably)
+
+match_sum3 |> 
+  probably::cal_plot_breaks(
+    truth = target,
+    ## the "_yes" in `.pred_yes` must match one of the values in `target`
+    estimate = .pred_Yes,
+    ## because "yes" is the second event level ("no" is the first)
+    event_level = 'first'
+  )
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+act_res = info2 %>% filter(comp == "Vitality Blast")
+
+
+
+
+
+#team_sum3 = team_sum %>% 
+
+
+
+```
+
+
+
+
+
+
 
 ```{r}
 
@@ -634,9 +858,10 @@ group = c("North", "North", "North", "South", "South", "South", "South", "South"
 
 
 
-teamo = team2_bat %>% select(team) %>%
+teamo = team2_bat_all %>% select(team) %>%
                             ungroup() %>%
-                            mutate(teamno = 1:n()) %>%
+                              group_by(file) %>%
+                            mutate(teamno = 2:n()) %>%
                               rename(opteam = team) %>%
                                 bind_cols(group) 
 
@@ -1030,7 +1255,9 @@ write.csv(iplmatch, "iplmatch.csv")
 
 ```{r}
 
-ipl_odds = read_csv("iplmatch.csv")
+library(readxl)
+
+ipl_odds = read_xlsx("matchodds.xlsx")
 
 
 
@@ -1041,13 +1268,24 @@ ipl_odds = read_csv("iplmatch.csv")
 ```
 
 
+```{r}
+
+
+pin_odds = ipl_odds %>% 
+                filter(bet_comp == "Pinnacle")
+
+
+
+
+````
+
 
 ```{r}
 
 
 
-team_sum5 = team_sum4 %>% left_join(ipl_odds, by = c("file", "team.x", "opteam")) %>%
-                                  mutate(odd_per_teamx = 1/team.x_win, odd_per_opteam = 1/opteam_win) %>%
+team_sum5 = team_sum4 %>% left_join(pin_odds, by = c("file", "team.x", "opteam")) %>%
+                                  mutate(odd_per_teamx = 1/team.x_odd, odd_per_opteam = 1/opteam_odd) %>%
                                     mutate(totper = odd_per_teamx + odd_per_opteam) %>%
                                       mutate(act_teamx = odd_per_teamx/totper, act_opteam = odd_per_opteam/totper)
 
@@ -1067,12 +1305,12 @@ ggplot(team_sum5, aes(x = .pred_Yes, y = act_teamx)) + geom_point()
 
 
 
-ipl_odds2 = ipl_odds %>% select(team.x, opteam, file) %>%
+ipl_odds2 = pin_odds %>% select(team.x, opteam, file) %>%
                               pivot_longer(cols = 1:2, names_to = "team_type", values_to = "team")
 
 
 
-ipl_odds3 = ipl_odds %>% select(team.x_win, opteam_win, file) %>%
+ipl_odds3 = pin_odds %>% select(team.x_odd, opteam_odd, file) %>%
                               pivot_longer(cols = 1:2, names_to = "pred_win", values_to = "odds") %>%
                                   separate(pred_win, into = c("team_type", "nerr"), sep = "_") 
 
@@ -1125,8 +1363,8 @@ bet_win_sum = team_sum5 %>% mutate(predel = .pred_Yes - .pred_No)  %>%
                                       left_join(ipl_odds_sum, by = c("file", "pred_win")) %>%
                                         mutate(winnings = if_else(pred_win == winning_team, odds*5, -5)) %>%
                                           ungroup() %>%
-                                            select(team.x, opteam, .pred_No, .pred_Yes, Match_dat.x, team.x_win, 
-                                                   opteam_win, pred_win, winning_team, odds, winnings)
+                                            select(team.x, opteam, .pred_No, .pred_Yes, Match_dat.x, team.x_odd, 
+                                                   opteam_odd, pred_win, winning_team, odds, winnings)
 
 ```
 
@@ -1301,7 +1539,7 @@ bet_win_sum_del = team_sum5 %>%
                             mutate(predel = .pred_Yes - .pred_No)  %>%
                                   mutate(pred_win = if_else(predel > 0, team.x, opteam))  %>%
                                       left_join(ipl_odds_sum, by = c("file", "pred_win")) %>%
-                            select(team.x, opteam, .pred_No, .pred_Yes, Match_dat.x, winning_team, team.x_win, opteam_win, act_teamx, act_opteam, predel, odds) %>%
+                            select(team.x, opteam, .pred_No, .pred_Yes, Match_dat.x, winning_team, team.x_odd, opteam_odd, act_teamx, act_opteam, predel, odds) %>%
                               mutate(pred_win = if_else(predel > 0, team.x, opteam)) %>%
                                   mutate(pred_abs = abs(.pred_Yes - .pred_No)) %>%
                                     mutate(pred_r = round(pred_abs*100, 0)) %>%
@@ -1359,6 +1597,30 @@ ggplot(post_out, aes(x = preds)) + geom_histogram()
 
 
 post_sum = post_out %>% summarise(tot = sum(preds))
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+bet_win_sum_del = team_sum5 %>% 
+                            mutate(predel = .pred_Yes - .pred_No)  %>%
+                                  mutate(pred_win = if_else(predel > 0, team.x, opteam))  %>%
+                                      left_join(ipl_odds_sum, by = c("file", "pred_win"))  %>%
+                                    mutate(pred_win = )
 
 
 
