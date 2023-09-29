@@ -1635,7 +1635,7 @@ bet_win_sum_del = team_sum5 %>%
 ```
 
 
-
+### kelly criteroi
 
 
 ```{r}
@@ -1645,15 +1645,31 @@ bet_win_sum_del = team_sum5 %>%
 
 
 
+full_dat = team_sum5 %>% select(team.x, opteam, .pred_Yes, .pred_No, Match_dat.x, team.x_odd, opteam_odd, winning_team) %>% 
+                                  mutate(delta = .pred_Yes - .pred_No) %>% 
+                                    mutate(fav_per = if_else(delta > 0, .pred_Yes, .pred_No), 
+                                           odd_for = if_else(delta > 0, team.x_odd, opteam_odd),
+                                           bet_team = if_else(delta > 0, team.x, opteam)) %>% 
+                                      mutate(keel_cri = ((odd_for*fav_per)-1)/(odd_for-1)) %>% 
+                                          mutate(bet_amount = if_else(keel_cri > 0, 500*keel_cri, 0)) %>% 
+                                            mutate(betwin = if_else(bet_team == winning_team, 1,0)) %>% 
+                                              mutate(totwin = if_else(keel_cri == 0, 0, 
+                                                                      if_else(betwin == 1, bet_amount * odd_for, 0)),
+                                                     totwin2 = if_else(keel_cri == 0, 0, 
+                                                                      if_else(betwin == 1, bet_amount * odd_for-bet_amount, -bet_amount)))
+ 
 
 
 
 
+comp_sum = full_dat %>% summarise(tot_stake = sum(bet_amount), tot_won = sum(totwin))
 
 
 
 
-
+full_dat_comp = full_dat %>% 
+                        arrange(Match_dat.x) %>%
+                        mutate(cumulative_value = 500 + cumsum(totwin2))
 
 
 
@@ -1661,3 +1677,41 @@ bet_win_sum_del = team_sum5 %>%
 
 
 ```
+
+
+
+
+```{r}
+
+
+
+
+set.seed(123)
+df <- data.frame(change_column = 1 + runif(10, -0.1, 0.1))
+
+# Calculate the cumulative changes
+df <- df %>%
+  mutate(cumulative_value = 500 * cumprod(change_column))
+
+# View the updated data frame
+print(df)
+#In this code:
+
+#We first load the dplyr library for data manipulation.
+#We create a data frame df with a column change_column that has some random change values (for simplicity, we've used random values between 0.9 and 1.1).
+#We then use the mutate() function from dplyr to create a new column cumulative_value.
+#Inside mutate(), we use the cumprod() function to calculate the cumulative product of the values in change_column, starting with a base value of 500.
+#Finally, we print the updated data frame to see the results.
+#The cumulative_value column will now contain the values starting at 500 and adjusting cumulatively based on the values in change_column.
+
+
+
+
+
+
+
+
+
+
+
+````
