@@ -3138,6 +3138,70 @@ model_dat_v4 <- model_dat %>% mutate(win = if_else(delta < 0, "No", "Yes")) %>%
 
 ````
 
+```{r}
+
+match_bat_best <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(tot_bat_wp))) %>%
+  filter(batrank < 8) %>%
+        filter(batrank == 1)
+
+
+
+ggplot(match_bat_best, aes(x = bbi)) + geom_histogram(binwidth = 1)
+
+
+
+```
+
+
+
+```{r}
+
+
+match_bat_best <- match_play %>%
+  left_join(info2, by = "file") %>%
+  mutate(comp1 = if_else(comp_t == "International", "international", comp)) %>%
+  mutate(comp2 = if_else(comp1 == "Vitality Blast", "England Blast", 
+                         if_else(comp1 == "NatWest T20 Blast", "England Blast", comp1))) %>%
+  left_join(play_stats2, by = c("player", "comp2")) %>%
+  group_by(team, file) %>%
+  mutate(batrank = rank(desc(tot_bat_wp))) %>%
+  filter(file == "1150554.json") 
+
+ggplot(match_bat_best, aes(x = player, y = tot_bat_wp)) + geom_col() + coord_flip()
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+	
+1150554.json
+
+
+
+
+
+
+
+
+```
+
+
+
 
 ```{r}
 
@@ -3349,6 +3413,145 @@ print(final_metrics)
 
 
 ```
+
+```{r}
+
+
+train_dat_in = train_dat_prob %>% mutate(roundbat1 = round(opbat_1, 2)) %>%
+                                    mutate(winf2 = if_else(winf == "Yes", 1,0)) %>%
+                                    group_by(roundbat1) %>%
+                                      summarise(meanwin = mean(winf2), tot = n())
+
+
+ggplot(train_dat_in, aes(x = roundbat1, y = meanwin, size = tot)) + geom_point()
+
+
+ggplot(train_dat_prob, aes(x = bowl_1, y = OPbowl_1, col = winf)) + geom_point(alpha = 0.05)
+
+
+```
+
+
+
+```{r}
+
+
+
+bat_1_dist = train_dat_prob %>% select(bat_1, bat_2, bat_3, bat_4) %>% 
+                                    pivot_longer(cols = 1:2, names_to = "meas", values_to = "player")
+
+
+ggplot(bat_1_dist, aes(x = player, fill = meas)) + geom_density(alpha = 0.5)
+
+
+
+
+average_par = train_dat_prob %>% 
+                              select(-winf) %>%
+                                summarise_all(.funs = mean)
+
+
+
+```
+
+
+
+```{r}
+
+
+
+
+preds = predict(fin_fitv4, average_par, type = "prob")
+
+
+
+average_sum = average_par %>% bind_cols(preds)
+
+
+
+```
+
+
+
+```{r}
+
+
+max_play =  train_dat_prob %>% 
+                              select(-winf) %>%
+                                summarise_all(.funs = max)
+
+
+min_play =  train_dat_prob %>% 
+                              select(-winf) %>%
+                                summarise_all(.funs = min)
+
+
+
+
+
+average_par_bat = average_par %>% sequence <- seq(from = -0.03, to = 0.35, length.out = 101)
+
+
+
+
+```
+
+
+
+```{r}
+
+bat_4 <- seq(from = -0.055, to = 0.05, length.out = 101)
+
+
+param = tibble(bat_4)
+
+
+
+
+average_par_bat = average_par %>% select(-bat_4) %>%
+                                        bind_cols(param)
+
+
+
+
+
+preds = predict(fin_fitv4, average_par_bat, type = "prob")
+
+
+
+average_sum_bat1 = average_par_bat %>% bind_cols(preds)
+
+
+ggplot(average_sum_bat1, aes(x = bat_4, y= .pred_Yes)) + geom_point()
+
+```
+
+
+
+
+```{r}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
 ##modelinvest
 
 
@@ -3407,12 +3610,12 @@ results2 = result %>% bind_cols(pred_sim_dat)
 
 
 
-bat_1_sum = results2 %>% select(bowl_5, .pred_Yes) %>%
-                                filter(bowl_5 >0)
+bat_1_sum = results2 %>% select(bowl_1, .pred_Yes) %>%
+                                filter(bowl_1 >0)
 
 
 
-ggplot(bat_1_sum, aes(x = bowl_5, y = .pred_Yes)) + geom_point()
+ggplot(bat_1_sum, aes(x = bowl_1, y = .pred_Yes)) + geom_point()
 
 
 
@@ -4276,7 +4479,7 @@ invinc = c("WG Jacks", "JJ Roy", "JM Cox", "TS Muyeye", "RA Whiteley", "SM Curra
            "SW Billings", "H Klaassen", "AAP Atkinson", "ZJ Chappell", "Ihsanullah", "DR Briggs", "NA Sowter", "A Zampa")
 brave =c("JJ Weatherley", "JM Vince", "TH David", "DP Conway", "FH Allen", "JL du Plooy", "GHS Garton", "JK Fuller", "MJ Santner", "AL Davies", "C Overton", "CJ Jordan", "TS Mills", "MD Fisher", "Rehan Ahmed", "JA Chohan")
 rocket = c("AD Hales", "DJ Malan", "C Munro", "SR Hain", "SR Patel", "L Gregory", "TJ Moores", "T Kohler-Cadmore", "L Wood", "SJ Cook", "DR Sams", "JA Turner", "BTJ Wheal", "M Carter", "IS Sodhi")
-fire = c("GD Phillips", "SS Eskinazi", "TB Abell", "DA Douthwaite", "BGF Green", "RE van der Merwe", "LWP Wells", "DJ Willey", "JM Clarke", "CB Cooke", "DA Payne", "GLS Scrimshaw", "JT Ball", "Haris Rauf", "Shaheen Shah Afridi", "JM Bairstow")
+fire = c("GD Phillips", "SS Eskinazi", "TB Abell", "DA Douthwaite", "BGF Green", "RE van der Merwe", "LWP Wells", "DJ Willey", "JM Clarke", "CB Cooke", "DA Payne", "GLS Scrimshaw", "JT Ball", "Haris Rauf", "JM Bairstow")
 
 
 
@@ -5138,7 +5341,7 @@ mod_sum_bat = cpl_squad1 %>% group_by(team) %>%
 
 
 
-bat_sum = mod_sum_bat %>% filter(team %in% c("royals", "kings"))
+bat_sum = mod_sum_bat %>% filter(team %in% c("royals", "tallawahs"))
 
 
 
@@ -5146,6 +5349,24 @@ ggplot(bat_sum, aes(x = batrank, y = tot_bat_wp, col = team, size = bf)) + geom_
 
 
 
+mod_sum_bowl = cpl_squad1 %>% group_by(team) %>%
+                                 mutate(bowlrank = rank(desc(bpi)))  %>%
+                                filter(bowlrank < 6) %>%
+                                  mutate(bowlr = rank(desc(wpa6))) %>%
+                                    select(team, player, bowlr, wpa6, bb) %>%
+                                      mutate(coltit = if_else(bowlr == 1, "bowl_1",
+                                                              if_else(bowlr == 2, "bowl_2",
+                                                                if_else(bowlr == 3, "bowl_3",
+                                                                  if_else(bowlr == 4, "bowl_4",
+                                                 if_else(bowlr == 5, "bowl_5", "Rr")))))) 
+
+
+
+bowl_sum = mod_sum_bowl %>% filter(team %in% c("royals", "k"))
+
+
+
+ggplot(bowl_sum, aes(x = bowlr, y = wpa6, col = team, size = bb)) + geom_point()
 
 
 
